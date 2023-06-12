@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  mother_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    tty: true
+

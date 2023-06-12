@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require 'find'
+
+def recursive_file_list(path)
+  Find.find(path) do |f|
+    next if File.directory?(f)
+    relative_path = f.sub("#{path}/", '')
+    puts "## File: #{relative_path}"
+    puts IO.read(f)
+    puts "\n\n"
+  end
+end
+
+recursive_file_list('.')
