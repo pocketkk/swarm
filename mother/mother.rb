@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'curses'
 require 'docker'
 require 'pry'
@@ -31,12 +33,12 @@ class ChatUI
   INTERNAL_PADDING = 2
   CHILD_PADDING = 1
 
-  LEFT_TOP_CORNER = "┌"
-  RIGHT_TOP_CORNER = "┐"
-  LEFT_BOTTOM_CORNER = "└"
-  RIGHT_BOTTOM_CORNER = "┘"
-  HORIZONTAL_LINE = "─"
-  VERTICAL_LINE = "│"
+  LEFT_TOP_CORNER = '┌'
+  RIGHT_TOP_CORNER = '┐'
+  LEFT_BOTTOM_CORNER = '└'
+  RIGHT_BOTTOM_CORNER = '┘'
+  HORIZONTAL_LINE = '─'
+  VERTICAL_LINE = '│'
 
   def create_chatbots_subwindow(main_window)
     chatbots_subwindow_width = main_window.maxx - (INTERNAL_PADDING * 2)
