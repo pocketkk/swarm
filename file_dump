@@ -12,4 +12,6 @@ def recursive_file_list(path)
   end
 end
 
-recursive_file_list('.')
+path = ARGV[0] || '.'
+
+recursive_file_list(path)
