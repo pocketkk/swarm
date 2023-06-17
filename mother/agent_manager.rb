@@ -30,7 +30,7 @@ class AgentManager
     @agents = [hello_bot, openai_chat_bot]
   end
 
-  def start_agents
-    @agents.map(&:start)
+  def start_agents(queue)
+    @agents.each { |agent| agent.start(queue) }
   end
 end

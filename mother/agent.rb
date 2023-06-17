@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'thread'
+
 class Agent
   extend Forwardable
 
@@ -17,8 +19,20 @@ class Agent
     @previous_message = ''
   end
 
-  def start
+  def start(queue)
     container.start
+    # Start a new thread that watches for new messages.
+    Thread.new do
+      loop do
+        # Check for new message.
+        if message != @previous_message
+          @previous_message = message
+          # Enqueue an event.
+          queue.push({ type: :new_message, agent: self })
+        end
+        sleep 0.1
+      end
+    end
   end
 
   def raw_message
