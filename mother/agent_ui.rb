@@ -3,8 +3,9 @@
 class AgentUI
   def initialize
     @queue = Queue.new
-    @window_manager = WindowManager.new
     @agent_manager = AgentManager.new
+    @window_manager = WindowManager.new
+    @window_manager.agents_count = agent_manager.agents.count
     @listening_thread = nil
   end
 
@@ -41,6 +42,8 @@ class AgentUI
           @queue.push('exit') # Push 'exit' to the queue so main loop will break
           break
         end
+
+        window_manager.agents_count = agent_manager.agents.count
 
         @queue.push({ type: :user_input, message: user_input })
       end
