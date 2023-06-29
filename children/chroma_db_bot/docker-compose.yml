@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  chroma_db_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}

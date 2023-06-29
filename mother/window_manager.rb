@@ -13,15 +13,18 @@ class WindowManager
 
   def initialize
     init_screen
+    init_colors
     start_color
     echo
     curs_set(1)
+    @logger = Logger.new('/home/pocketkk/ai/agents/swarm/logs/window_manager.log')
     @messages = []
     @agents_count = 0
     @main_window = create_main_window
     @agents_subwindow = create_agents_subwindow
     @chat_window = create_chat_window
     @input_window = create_input_window
+    @input_window.refresh
     refresh!
   end
 
@@ -48,19 +51,147 @@ class WindowManager
     str
   end
 
-  def write_to_chat_window(message)
-    @messages << message
-    @chat_window.clear
-    @chat_window = Frame.new(@chat_window, ' CHAT ').framed_window  # Redraw the border after adding the message
-    @messages.each_with_index do |msg, i|
-      @chat_window.setpos(i+1, 1)
-      @chat_window.addstr(msg)
+def write_to_chat_window(message, color=1)
+  @logger.info("Message for chat window: #{message}")
+  window_width = @chat_window.maxx - 2
+  message = message.gsub(/\n\n/, "\n\u00A0\n") # Using a non-breaking space for the dummy line
+
+  user_message = message.start_with?("User:")
+
+  paragraphs = message.split("\n\u00A0\n") # Splitting into paragraphs at the dummy line
+
+  wrapped_message = paragraphs.flat_map do |paragraph|
+    if paragraph.start_with?("Agent:") || paragraph.start_with?("User:")
+      # Split paragraph into two columns at the first occurrence of a colon
+      columns = paragraph.split(':', 2)
+      columns[1] ||= "" # Set columns[1] to an empty string if it's nil
+
+      # Padding the first column to a width of window_width/4
+      columns[0] = (columns[0] + ":").ljust(window_width / 8)
+
+      # Wrapping the second column
+      columns[1] = columns[1].scan(/\S.{0,#{(window_width*3)/4-2}}\S(?=\s|$)|\S+/)
+
+      # Prepending the first column to each line of columns[1]
+      lines = columns[1].map.with_index do |line, index|
+        if index == 0
+          columns[0] + line.ljust((window_width*3) / 4)
+        else
+          (' ' * columns[0].length) + line.ljust((window_width*3) / 4)
+        end
+      end
+      lines + [" "]
+    else
+      columns = ['', paragraph]
+      # Padding the first column to a width of window_width/4
+      columns[0] = columns[0].ljust(window_width / 8)
+      # Just wrap the paragraph without splitting it into columns
+      columns[1] = columns[1].scan(/\S.{0,#{(window_width*3)/4-2}}\S(?=\s|$)|\S+/)
+      # Prepending the first column to each line of columns[1]
+      lines = columns[1].map.with_index do |line, index|
+        if index == 0
+          columns[0] + line.ljust((window_width*3) / 4)
+        else
+          (' ' * columns[0].length) + line.ljust((window_width*3) / 4)
+        end
+      end
+      lines + [" "]
     end
-    @chat_window.refresh
-    @input_window.setpos(1, 1)
   end
 
+  @logger.info("Wrapped message: #{wrapped_message}")
+  @logger.info("wrapped_message size: #{wrapped_message.size}")
+  @logger.info("messages size before prune: #{@messages.size}")
+  @logger.info("chat_window.maxy: #{@chat_window.maxy}")
+  wrapped_message.each do |line|
+    @logger.info("line: #{line}")
+    @logger.info("line size: #{line.gsub("\n", "\n\n\n")}")
+    @messages << [line, color]
+  end
+
+  @messages = @messages.last(@chat_window.maxy - 2)
+
+  @logger.info("messages size after prune: #{@messages.size}")
+
+  @chat_window.clear
+  @chat_window = Frame.new(@chat_window, ' CHAT ').framed_window
+
+  @messages.each_with_index do |msg, i|
+    @chat_window.attrset(Curses.color_pair(msg[1]))
+    @chat_window.setpos(i+1, 1)
+    @chat_window.addstr(msg[0])
+    @chat_window.attrset(Curses::A_NORMAL)
+  end
+  @chat_window.refresh
+  @input_window.setpos(1, 1) if user_message
+end
+
+#def write_to_chat_window(message, color=1)
+  #@logger.info("Message for chat window: #{message}")
+  #window_width = @chat_window.maxx - 2
+
+  ## Split the message into lines, assuming that each line is a separate paragraph
+  #paragraphs = message.split("\n")
+
+  #@logger.info("Paragraphs: #{paragraphs}")
+
+  #wrapped_message = paragraphs.flat_map do |paragraph|
+    ## Split paragraph into two columns at the first occurrence of a colon
+    #columns = paragraph.split(':', 2)
+    #columns[1] ||= "" # Set columns[1] to an empty string if it's nil
+
+    ## Padding the first column to a width of window_width/4
+    #columns[0] = columns[0]&.ljust(window_width / 8) || ''
+
+    ## Wrapping the second column
+    #columns[1] = columns[1].scan(/\S.{0,#{(window_width*3)/4-2}}\S(?=\s|$)|\S+/)
+
+    ## Prepending the first column to each line of columns[1]
+    #lines = columns[1].map.with_index do |line, index|
+      #if index == 0
+        #columns[0] + line.ljust((window_width*3) / 4)
+      #else
+        #(' ' * columns[0].length) + line.ljust((window_width*3) / 4)
+      #end
+    #end
+
+    #lines
+  #end
+
+  #@logger.info("Wrapped message: #{wrapped_message}")
+  #@logger.info("wrapped_message size: #{wrapped_message.size}")
+  #@logger.info("messages size before prune: #{@messages.size}")
+  #@logger.info("chat_window.maxy: #{@chat_window.maxy}")
+  #wrapped_message.each do |line|
+    #@messages << [line + "\n", color]
+  #end
+
+  #@messages = @messages.last(@chat_window.maxy - 2)
+  #@logger.info("messages size after prune: #{@messages.size}")
+  #@chat_window.clear
+  #@chat_window = Frame.new(@chat_window, ' CHAT ').framed_window
+
+  #@messages.each_with_index do |msg, i|
+    #@chat_window.attrset(Curses.color_pair(msg[1]))
+    #@chat_window.setpos(i+1, 1)
+    #@chat_window.addstr(msg[0])
+    #@chat_window.attrset(Curses::A_NORMAL)
+  #end
+  #@chat_window.refresh
+  #@input_window.setpos(1, 1)
+#end
+
+
+
+
   private
+
+  def init_colors
+    start_color
+    init_pair(1, COLOR_RED, COLOR_BLACK)
+    init_pair(2, COLOR_GREEN, COLOR_BLACK)
+    init_pair(3, COLOR_BLUE, COLOR_BLACK)
+  end
 
   def create_main_window
     init_pair(1, COLOR_WHITE, COLOR_BLACK)
@@ -78,7 +209,7 @@ class WindowManager
     Frame.new(window, ' AGENTS ').framed_window
   end
 
-   def create_chat_window
+  def create_chat_window
     chat_window_width = @main_window.maxx - (INTERNAL_PADDING * BORDER_SPACE)
     chat_window_height = @main_window.maxy - @agents_subwindow.maxy - (PADDING_HEIGHT + INTERNAL_PADDING + BORDER_WIDTH) * 2 + 3
     window = @main_window.subwin(chat_window_height, chat_window_width, @agents_subwindow.maxy - 1 + PADDING_HEIGHT * 2 + INTERNAL_PADDING, INTERNAL_PADDING + PADDING_WIDTH)

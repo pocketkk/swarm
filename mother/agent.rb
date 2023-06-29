@@ -9,10 +9,12 @@ class Agent
                 :name,
                 :messages,
                 :previous_message,
-                :row
+                :row,
+                :color
 
-  def initialize(container:, name:, row:)
+  def initialize(container:, name:, row:, color:)
     @container = container
+    @color = color
     @name = name
     @row = row
     @messages = messages
