@@ -6,4 +6,4 @@ gem 'docker-api'
 gem 'curses'
 gem 'pry'
 gem 'forwardable'
-
+gem 'redis'

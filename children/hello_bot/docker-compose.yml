@@ -1,7 +1,18 @@
-version: '3.8'
-
+version: '3'
 services:
   hello_bot:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      - redis
+    networks:
+      - agent_network
+    environment:
+      - REDIS_URL=redis://redis:6379
+  redis:
+    image: redis
+    networks:
+      - agent_network
+networks:
+  agent_network:

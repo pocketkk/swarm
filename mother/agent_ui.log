@@ -1,0 +1,103 @@
+# Logfile created on 2023-06-18 17:21:46 -0700 by logger.rb/v1.5.3
+I, [2023-06-18T17:21:46.294147 #28796]  INFO -- : Starting Agent UI
+I, [2023-06-18T17:21:46.770727 #28796]  INFO -- : Agents started
+I, [2023-06-18T17:21:46.771116 #28796]  INFO -- : Agents: [#<Agent:0x00007f4803cd1408 @container=#<Docker::Container:0x00007f4803cf40c0 @id="05d2c95ceec892721dd3ba0228830d610c6691938a54067e5a7d755f8559deb7", @info={"Warnings"=>[], "id"=>"05d2c95ceec892721dd3ba0228830d610c6691938a54067e5a7d755f8559deb7"}, @connection=#<Docker::Connection:0x00007f4803cf4980 @url="unix:///", @options={:socket=>"/var/run/docker.sock", :read_timeout=>500, :write_timeout=>500}>>, @color=2, @name=:hello_bot, @row=3, @messages=nil, @previous_message="Hello Bot - Online ...">, #<Agent:0x00007f4803cd2218 @container=#<Docker::Container:0x00007f4803cfa470 @id="6f79792c8f8f8c02719d87100c3fce5139bbbac42a11551afeb05aa02cea959e", @info={"Warnings"=>[], "id"=>"6f79792c8f8f8c02719d87100c3fce5139bbbac42a11551afeb05aa02cea959e"}, @connection=#<Docker::Connection:0x00007f4803cf4980 @url="unix:///", @options={:socket=>"/var/run/docker.sock", :read_timeout=>500, :write_timeout=>500}>>, @color=1, @name=:openai_chat_bot, @row=2, @messages=nil, @previous_message="">]
+I, [2023-06-18T17:21:46.771134 #28796]  INFO -- : Listening to user input
+I, [2023-06-18T17:21:46.771158 #28796]  INFO -- : Listening to agents
+I, [2023-06-18T17:21:46.771564 #28796]  INFO -- : Event: {:type=>:new_message, :agent=>#<Agent:0x00007f4803cd1408 @container=#<Docker::Container:0x00007f4803cf40c0 @id="05d2c95ceec892721dd3ba0228830d610c6691938a54067e5a7d755f8559deb7", @info={"Warnings"=>[], "id"=>"05d2c95ceec892721dd3ba0228830d610c6691938a54067e5a7d755f8559deb7"}, @connection=#<Docker::Connection:0x00007f4803cf4980 @url="unix:///", @options={:socket=>"/var/run/docker.sock", :read_timeout=>500, :write_timeout=>500}>>, @color=2, @name=:hello_bot, @row=3, @messages=nil, @previous_message="Hello Bot - Online ...">}
+I, [2023-06-18T17:21:46.771570 #28796]  INFO -- : New message: 
+I, [2023-06-18T17:21:46.771875 #28796]  INFO -- : REDIS: #<Redis:0x00007f4803d87b40>
+I, [2023-06-18T17:21:51.604932 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"0d98476a7df1"}
+I, [2023-06-18T17:21:51.605042 #28796]  INFO -- : Agent input: 0d98476a7df1
+I, [2023-06-18T17:21:56.608853 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"b5816df4d6e7"}
+I, [2023-06-18T17:21:56.608960 #28796]  INFO -- : Agent input: b5816df4d6e7
+I, [2023-06-18T17:22:01.612850 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"bfa68917fdc8"}
+I, [2023-06-18T17:22:01.612954 #28796]  INFO -- : Agent input: bfa68917fdc8
+I, [2023-06-18T17:22:06.616823 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"bcea87aee9ff"}
+I, [2023-06-18T17:22:06.616925 #28796]  INFO -- : Agent input: bcea87aee9ff
+I, [2023-06-18T17:22:11.620792 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"fd9da277b602"}
+I, [2023-06-18T17:22:11.620891 #28796]  INFO -- : Agent input: fd9da277b602
+I, [2023-06-18T17:22:16.624864 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"c06262ab8157"}
+I, [2023-06-18T17:22:16.624996 #28796]  INFO -- : Agent input: c06262ab8157
+I, [2023-06-18T17:22:21.628867 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"39b53e75e3ad"}
+I, [2023-06-18T17:22:21.628969 #28796]  INFO -- : Agent input: 39b53e75e3ad
+I, [2023-06-18T17:22:26.632685 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"7978f239c353"}
+I, [2023-06-18T17:22:26.632791 #28796]  INFO -- : Agent input: 7978f239c353
+I, [2023-06-18T17:22:31.636871 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"4b1f842d0be4"}
+I, [2023-06-18T17:22:31.636969 #28796]  INFO -- : Agent input: 4b1f842d0be4
+I, [2023-06-18T17:22:36.640864 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"8b7cf1c6836a"}
+I, [2023-06-18T17:22:36.640977 #28796]  INFO -- : Agent input: 8b7cf1c6836a
+I, [2023-06-18T17:22:41.644952 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"6587cc60b494"}
+I, [2023-06-18T17:22:41.645055 #28796]  INFO -- : Agent input: 6587cc60b494
+I, [2023-06-18T17:22:46.648345 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"cd46208da4e2"}
+I, [2023-06-18T17:22:46.648379 #28796]  INFO -- : Agent input: cd46208da4e2
+I, [2023-06-18T17:22:51.652862 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"23456630d840"}
+I, [2023-06-18T17:22:51.652967 #28796]  INFO -- : Agent input: 23456630d840
+I, [2023-06-18T17:22:56.656425 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"928fd685728d"}
+I, [2023-06-18T17:22:56.656482 #28796]  INFO -- : Agent input: 928fd685728d
+I, [2023-06-18T17:23:01.662206 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"07f5a7cea43c"}
+I, [2023-06-18T17:23:01.662316 #28796]  INFO -- : Agent input: 07f5a7cea43c
+I, [2023-06-18T17:23:06.668174 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"7df0f85ccc59"}
+I, [2023-06-18T17:23:06.668281 #28796]  INFO -- : Agent input: 7df0f85ccc59
+I, [2023-06-18T17:23:11.672332 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"cfe1bc82f666"}
+I, [2023-06-18T17:23:11.672361 #28796]  INFO -- : Agent input: cfe1bc82f666
+I, [2023-06-18T17:23:16.677091 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"e178355c7c18"}
+I, [2023-06-18T17:23:16.677213 #28796]  INFO -- : Agent input: e178355c7c18
+I, [2023-06-18T17:23:21.681976 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"bd033c61f6d9"}
+I, [2023-06-18T17:23:21.682077 #28796]  INFO -- : Agent input: bd033c61f6d9
+I, [2023-06-18T17:23:26.687814 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"92f07f2055fc"}
+I, [2023-06-18T17:23:26.687923 #28796]  INFO -- : Agent input: 92f07f2055fc
+I, [2023-06-18T17:23:31.692719 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"9b3d16294bb9"}
+I, [2023-06-18T17:23:31.692821 #28796]  INFO -- : Agent input: 9b3d16294bb9
+I, [2023-06-18T17:23:36.698563 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"694506fcf346"}
+I, [2023-06-18T17:23:36.698673 #28796]  INFO -- : Agent input: 694506fcf346
+I, [2023-06-18T17:23:41.700486 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"80a454b42406"}
+I, [2023-06-18T17:23:41.700520 #28796]  INFO -- : Agent input: 80a454b42406
+I, [2023-06-18T17:23:46.705770 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"b2ff2e774f59"}
+I, [2023-06-18T17:23:46.705795 #28796]  INFO -- : Agent input: b2ff2e774f59
+I, [2023-06-18T17:23:51.710595 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"3b98c9731071"}
+I, [2023-06-18T17:23:51.710631 #28796]  INFO -- : Agent input: 3b98c9731071
+I, [2023-06-18T17:23:56.712397 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"a3cfb4cb8a56"}
+I, [2023-06-18T17:23:56.712431 #28796]  INFO -- : Agent input: a3cfb4cb8a56
+I, [2023-06-18T17:24:01.716954 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"1dfc55d5c3ec"}
+I, [2023-06-18T17:24:01.717060 #28796]  INFO -- : Agent input: 1dfc55d5c3ec
+I, [2023-06-18T17:24:06.721876 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"b0c2f7c5253e"}
+I, [2023-06-18T17:24:06.721984 #28796]  INFO -- : Agent input: b0c2f7c5253e
+I, [2023-06-18T17:24:11.724920 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"beaf82c7fa5d"}
+I, [2023-06-18T17:24:11.725019 #28796]  INFO -- : Agent input: beaf82c7fa5d
+I, [2023-06-18T17:24:16.728370 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"5f69158ec518"}
+I, [2023-06-18T17:24:16.728399 #28796]  INFO -- : Agent input: 5f69158ec518
+I, [2023-06-18T17:24:21.732916 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"4de1bd29d8a0"}
+I, [2023-06-18T17:24:21.733015 #28796]  INFO -- : Agent input: 4de1bd29d8a0
+I, [2023-06-18T17:24:26.737935 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"9ff12fb49505"}
+I, [2023-06-18T17:24:26.738045 #28796]  INFO -- : Agent input: 9ff12fb49505
+I, [2023-06-18T17:24:31.741663 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"2b5dd1546aeb"}
+I, [2023-06-18T17:24:31.741763 #28796]  INFO -- : Agent input: 2b5dd1546aeb
+I, [2023-06-18T17:24:36.744927 #28796]  INFO -- : Event: {:type=>:agent_input, :message=>"da64504d98b7"}
+I, [2023-06-18T17:24:36.745059 #28796]  INFO -- : Agent input: da64504d98b7
+I, [2023-06-18T17:24:38.038484 #28796]  INFO -- : User requested exit
+I, [2023-06-18T17:25:29.254416 #30215]  INFO -- : Starting Agent UI
+I, [2023-06-18T17:25:29.749761 #30215]  INFO -- : Agents started
+I, [2023-06-18T17:25:29.750129 #30215]  INFO -- : Agents: [#<Agent:0x00007fc7302513c8 @container=#<Docker::Container:0x00007fc730273f18 @id="abd47b299fbbd36e2ff275149d7b456e26c6271478f6d65d6018d4b7ca54cfd2", @info={"Warnings"=>[], "id"=>"abd47b299fbbd36e2ff275149d7b456e26c6271478f6d65d6018d4b7ca54cfd2"}, @connection=#<Docker::Connection:0x00007fc7302748a0 @url="unix:///", @options={:socket=>"/var/run/docker.sock", :read_timeout=>500, :write_timeout=>500}>>, @color=2, @name=:hello_bot, @row=3, @messages=nil, @previous_message="Hello Bot - Online ...">, #<Agent:0x00007fc7302521d8 @container=#<Docker::Container:0x00007fc73027a228 @id="8f0413bd479c140999bc717ac438352f30bbbebad2b79359f63a9bd6370e39e9", @info={"Warnings"=>[], "id"=>"8f0413bd479c140999bc717ac438352f30bbbebad2b79359f63a9bd6370e39e9"}, @connection=#<Docker::Connection:0x00007fc7302748a0 @url="unix:///", @options={:socket=>"/var/run/docker.sock", :read_timeout=>500, :write_timeout=>500}>>, @color=1, @name=:openai_chat_bot, @row=2, @messages=nil, @previous_message="">]
+I, [2023-06-18T17:25:29.750148 #30215]  INFO -- : Listening to user input
+I, [2023-06-18T17:25:29.750170 #30215]  INFO -- : Listening to agents
+I, [2023-06-18T17:25:29.750370 #30215]  INFO -- : Event: {:type=>:new_message, :agent=>#<Agent:0x00007fc7302513c8 @container=#<Docker::Container:0x00007fc730273f18 @id="abd47b299fbbd36e2ff275149d7b456e26c6271478f6d65d6018d4b7ca54cfd2", @info={"Warnings"=>[], "id"=>"abd47b299fbbd36e2ff275149d7b456e26c6271478f6d65d6018d4b7ca54cfd2"}, @connection=#<Docker::Connection:0x00007fc7302748a0 @url="unix:///", @options={:socket=>"/var/run/docker.sock", :read_timeout=>500, :write_timeout=>500}>>, @color=2, @name=:hello_bot, @row=3, @messages=nil, @previous_message="Hello Bot - Online ...">}
+I, [2023-06-18T17:25:29.750376 #30215]  INFO -- : New message: 
+I, [2023-06-18T17:25:29.750892 #30215]  INFO -- : REDIS: #<Redis:0x00007fc730307fd8>
+I, [2023-06-18T17:25:34.588844 #30215]  INFO -- : Event: {:type=>:agent_input, :message=>"7f298713262f"}
+I, [2023-06-18T17:25:34.588936 #30215]  INFO -- : Agent input: 7f298713262f
+I, [2023-06-18T17:25:39.592735 #30215]  INFO -- : Event: {:type=>:agent_input, :message=>"bc54b236afce"}
+I, [2023-06-18T17:25:39.592822 #30215]  INFO -- : Agent input: bc54b236afce
+I, [2023-06-18T17:25:41.620298 #30215]  INFO -- : Event: {:type=>:user_input, :message=>"fasdas"}
+I, [2023-06-18T17:25:41.620415 #30215]  INFO -- : User input: fasdas
+I, [2023-06-18T17:25:44.597599 #30215]  INFO -- : Event: {:type=>:agent_input, :message=>"466be8849f93"}
+I, [2023-06-18T17:25:44.597707 #30215]  INFO -- : Agent input: 466be8849f93
+I, [2023-06-18T17:25:49.600280 #30215]  INFO -- : Event: {:type=>:agent_input, :message=>"1405db8b3490"}
+I, [2023-06-18T17:25:49.600305 #30215]  INFO -- : Agent input: 1405db8b3490
+I, [2023-06-18T17:25:54.605989 #30215]  INFO -- : Event: {:type=>:agent_input, :message=>"603081e6ec63"}
+I, [2023-06-18T17:25:54.606084 #30215]  INFO -- : Agent input: 603081e6ec63
+I, [2023-06-18T17:25:59.608938 #30215]  INFO -- : Event: {:type=>:agent_input, :message=>"26fc4a4338d5"}
+I, [2023-06-18T17:25:59.609047 #30215]  INFO -- : Agent input: 26fc4a4338d5
+I, [2023-06-18T17:26:04.612679 #30215]  INFO -- : Event: {:type=>:agent_input, :message=>"c8c9c6d0e359"}
+I, [2023-06-18T17:26:04.612773 #30215]  INFO -- : Agent input: c8c9c6d0e359
+I, [2023-06-18T17:26:07.348052 #30215]  INFO -- : User requested exit
