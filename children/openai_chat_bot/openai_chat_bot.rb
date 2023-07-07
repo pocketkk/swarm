@@ -4,6 +4,7 @@ require 'uri'
 require 'json'
 require 'redis'
 require 'logger'
+require_relative 'pg_client'
 
 class OpenAIChatBot
   API_ENDPOINT = 'https://api.openai.com/v1/chat/completions'
@@ -11,11 +12,38 @@ class OpenAIChatBot
   CONTENT_TYPE = 'application/json'
   LOG_PATH = '/app/logs/open_ai_chatbot_'
 
-  def initialize(redis_host, redis_port)
+  def initialize(redis_host, redis_port, db_host, db_name, db_user, db_password)
     @redis_host = redis_host
     @redis_port = redis_port
+    @db_host = db_host
+    @db_name = db_name
+    @db_user = db_user
+    @db_password = db_password
+
     @logger = initialize_logger
+    sleep(5)
     @redis_client = initialize_redis
+    log_info("Starting Initialization: #{@pg_client}")
+    log_info("DB HOST: #{db_host} | DB NAME: #{db_name} | DB USER: #{db_user} | DB PASSWORD: #{db_password}")
+    @pg_client = PGClient.new(db_host, db_name, db_user, db_password) rescue nil
+
+    #NOTE: Only run once, then comment out
+    unless @pg_client.table_exists?('embedding_texts')
+      table_name = 'embedding_texts'
+      options_hash = {
+        id: 'serial PRIMARY KEY',
+        content: :string,
+        embeddings_id: :string,
+        created_at: 'timestamp DEFAULT CURRENT_TIMESTAMP'
+      }
+      @pg_client.create_table(table_name, options_hash)
+    end
+
+    log_info("Initalizing database tables")
+    @pg_client.create_table()
+    log_info("Initialized: #{@pg_client}")
+  rescue => e
+    handle_error(e)
   end
 
   def run
@@ -57,7 +85,7 @@ class OpenAIChatBot
     puts 'Shit there was an error (see logs)'
 
     puts 'Restarting process messages.'
-    process_messages
+    #process_messages
   end
 
   def get_chat(message, api_key = nil)
@@ -135,8 +163,24 @@ class OpenAIChatBot
 
   def process_event(event)
     puts 'Processing event ...'
+    id = persist_message(event['message'], 'persist_user_input')
     response = process_message(event['message'])
+    id_response = persist_message(response, 'persist_agent_input')
     publish_response(response)
+  end
+
+  def persist_message(message, type)
+    while @pg_client.nil?
+      puts 'Waiting for pg client to be initialized.'
+      sleep 1
+      @pg_client = PGClient.new(@db_host, @db_name, @db_user, @db_password)
+    end
+
+    id = @pg_client.save_message(message)
+    result = @redis_client.publish('events', { type: type, postgres_id: id, message: message}.to_json)
+    log_info("Persisted message: #{message}, Persist result: #{id}, #{result}")
+    puts 'Persisted message.'
+    id
   end
 
   def process_messages
@@ -169,9 +213,13 @@ class OpenAIChatBot
 end
 
 # Example usage
-#redis_host = '172.27.0.2'
 redis_host = 'redis_container'
 redis_port = 6379
 
-bot = OpenAIChatBot.new(redis_host, redis_port)
+db_host = 'postgres_container'
+db_name = 'postgres'
+db_user = 'postgres'
+db_password = 'postgres'
+
+bot = OpenAIChatBot.new(redis_host, redis_port, db_host, db_name, db_user, db_password)
 bot.run
