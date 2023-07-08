@@ -1,6 +1,8 @@
 require 'pg'
+require_relative 'subscribe'
 
 class ServiceNanny
+
   attr_reader :redis, :postgres, :logger, :options
 
   def initialize(*services)
@@ -48,7 +50,19 @@ class ServiceNanny
   end
 
   def tell_mother(message)
-    puts message
+    @logger.info(message) if @logger
+
+    puts message[0, 50]
+  end
+
+  def subscribe(channel:, types:, &callback)
+    Subscribe.new(nanny: self, channel: channel, types: types, &callback).start do |event|
+      callback.call(event)
+    end
+  end
+
+  def publish(channel:, message:)
+    @redis.publish(channel, message)
   end
 
   private
