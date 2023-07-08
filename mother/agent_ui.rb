@@ -60,7 +60,7 @@ class AgentUI
         window_manager.agents_count = agent_manager.agents.count
 
         @redis.publish('events', { type: :user_input, agent: 'mother', message: user_input}.to_json)
-        @queue.push({ type: :user_input, message: user_input })
+        @queue.push({ type: :user_input, agent: 'mother', message: user_input })
       end
     end
   end
@@ -74,8 +74,8 @@ class AgentUI
         on.message do |channel, message|
           event = JSON.parse(message)
           # handle the event
-          unless event['type'] == 'user_input'
-            @queue.push({ type: :agent_input, message: event['message'] })
+          unless ['user_input', 'new_user_embedding', 'new_agent_embedding'].include?(event['type'])
+            @queue.push({ type: :agent_input, agent: event['agent'], message: event['message'] })
           end
         end
       end
@@ -94,7 +94,7 @@ end
       window_manager.write_to_chat_window("User: #{event[:message]}")
     when :agent_input
       logger.info("Agent input: #{event[:message]}")
-      window_manager.write_to_chat_window("Agent: #{event[:message]}", 3)
+      window_manager.write_to_chat_window("Agent: (#{event[:agent]}): #{event[:message]}", 3)
     end
     window_manager.refresh!
   end

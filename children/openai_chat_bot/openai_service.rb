@@ -1,3 +1,8 @@
+# openai_service.rb
+require 'net/http'
+require 'uri'
+require 'json'
+
 class OpenAIService
   API_ENDPOINT = 'https://api.openai.com/v1/chat/completions'
   MODEL = 'gpt-3.5-turbo'

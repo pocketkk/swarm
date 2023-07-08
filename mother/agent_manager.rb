@@ -8,7 +8,11 @@ class AgentManager
     #system('docker network create agent_network') unless system('docker network inspect agent_network')
 
     # NOTE: If this stops working check the ip addresses
+    system('docker stop redis_container')
     system('docker rm redis_container')
+
+    system('docker stop postgres_container')
+    system('docker rm postgres_container')
 
     @redis = Agent.new(
       name: :redis_container,
@@ -27,14 +31,54 @@ class AgentManager
       )
     )
 
+    @postgres = Agent.new(
+      name: :postgres_container,
+      row: 1,
+      color: 1,
+      container: Docker::Container.create(
+        'name' => 'postgres_container',
+        'Cmd' => ['postgres'],
+        'Image' => 'postgres',
+        'Tty' => true,
+        'ExposedPorts' => { '5432/tcp' => {} },
+        'Env' => [
+          'POSTGRES_PASSWORD=postgres',
+          'POSTGRES_USER=postgres'
+        ],
+        'HostConfig' => {
+          'PortBindings' => { '5432/tcp' => [{ 'HostPort' => '5432' }] },
+          'NetworkMode' => 'agent_network',
+          'Binds' => ['/home/pocketkk/ai/agents/swarm/postgres_data:/var/lib/postgresql/data']
+        }
+      )
+    )
+
+    @postgres.container.start
     @redis.container.start
 
     sleep(5)
 
-openai_chat_bot = \
+    milvus_db_bot = \
+      Agent.new(
+        name: :milvus_db_bot,
+        row: 1,
+        color: 1,
+        container: Docker::Container.create(
+          'Cmd' => ['ruby', 'milvus_db_bot.rb'],
+          'Image' => 'milvus_db_bot',
+          'Tty' => true,
+          'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
+          'HostConfig' => {
+            'NetworkMode' => 'agent_network',
+            'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
+          }
+        )
+      )
+
+    openai_chat_bot = \
       Agent.new(
         name: :openai_chat_bot,
-        row: 1,
+        row: 2,
         color: 1,
         container: Docker::Container.create(
           'Cmd' => ['ruby', 'openai_chat_bot.rb'],
@@ -48,14 +92,14 @@ openai_chat_bot = \
         )
       )
 
-    chroma_db_bot = \
+    openai_embedding_bot = \
       Agent.new(
-        name: :chroma_db_bot,
-        row: 2,
-        color: 2,
+        name: :openai_embedding_bot,
+        row: 3,
+        color: 1,
         container: Docker::Container.create(
-          'Cmd' => ['ruby', 'chroma_db_bot.rb'],
-          'Image' => 'chroma_db_bot',
+          'Cmd' => ['ruby', 'openai_embedding_bot.rb'],
+          'Image' => 'openai_embedding_bot',
           'Tty' => true,
           'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
           'HostConfig' => {
@@ -65,22 +109,24 @@ openai_chat_bot = \
         )
       )
 
-    hello_bot = \
-      Agent.new(
-        name: :hello_bot,
-        row: 3,
-        color: 2,
-        container: Docker::Container.create(
-          'Cmd' => ['ruby', 'hello_bot.rb', 'From Mother'],
-          'Image' => 'hello_bot',
-          'Tty' => true,
-          'HostConfig' => {
-            'NetworkMode' => 'agent_network'
-          }
-        )
-      )
+    #chroma_db_bot = \
+    #Agent.new(
+    #name: :chroma_db_bot,
+    #row: 3,
+    #color: 2,
+    #container: Docker::Container.create(
+    #'Cmd' => ['ruby', 'chroma_db_bot.rb'],
+    #'Image' => 'chroma_db_bot',
+    #'Tty' => true,
+    #'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
+    #'HostConfig' => {
+    #'NetworkMode' => 'agent_network',
+    #'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
+    #}
+    #)
+    #)
 
-    @agents = [hello_bot, openai_chat_bot, chroma_db_bot]
+    @agents = [openai_chat_bot, milvus_db_bot, openai_embedding_bot]
   end
 
   def start_agents(queue)
@@ -90,5 +136,6 @@ openai_chat_bot = \
   def stop_agents
     @agents.each { |agent| agent.container.stop }
     @redis.container.stop
+    @postgres.container.stop
   end
 end

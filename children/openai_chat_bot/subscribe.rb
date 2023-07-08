@@ -1,5 +1,6 @@
 # subscribe.rb
 require 'redis'
+require 'json'
 
 class Subscribe
   def initialize(nanny:, channel:, types:, &callback)

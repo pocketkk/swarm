@@ -1,13 +1,16 @@
 require 'pg'
+require 'redis'
+require 'logger'
 require_relative 'subscribe'
+require_relative 'pg_client'
 
 class ServiceNanny
-
   attr_reader :redis, :postgres, :logger, :options
 
   def initialize(*services)
     @options = services.last.is_a?(Hash) ? services.pop : {}
     @services = services
+    @logger = Logger.new(STDOUT)
     start
   end
 
@@ -19,7 +22,7 @@ class ServiceNanny
       when :postgres
         @postgres = initialize_postgres
 
-        initialize_tables
+        #initialize_tables
       when :logger
         raise 'Missing log_path' if options[:log_path].nil?
 
@@ -52,7 +55,7 @@ class ServiceNanny
   def tell_mother(message)
     @logger.info(message) if @logger
 
-    puts message[0, 50]
+    puts "#{message[0, 40]} ..."
   end
 
   def subscribe(channel:, types:, &callback)
@@ -76,16 +79,20 @@ class ServiceNanny
   end
 
   def initialize_tables
-    unless @postgres.table_exists?('embedding_texts')
-      table_name = 'embedding_texts'
+    @logger.info('Initializing tables ...')
+
+    unless @postgres.table_exists?('messages')
+      @logger.info('Creating table: messages')
+      table_name = 'messages'
       options_hash = {
         id: 'serial PRIMARY KEY',
+        source: :string,
         content: :string,
         embeddings_id: :string,
         created_at: 'timestamp DEFAULT CURRENT_TIMESTAMP'
       }
 
-      @pg_client.create_table(table_name, options_hash)
+      @postgres.create_table(table_name, options_hash)
     end
   end
 end

@@ -85,7 +85,7 @@ class MilvusDbBot
     @listening_agents = Thread.new do
       begin
         log_info("Starting Thread:")
-        @redis_client.subscribe('events') do |on|
+        @redis_client.subscribe('milvus') do |on|
           log_info("Subscribing ...")
           @logger.info('Subscribing .....')
           on.message do |_channel, message|
@@ -95,8 +95,8 @@ class MilvusDbBot
               event = JSON.parse(message)
               log_info("Event Agent: #{event['agent']}")
               unless event['agent'] == 'milvus_db_bot'
-                process_event(event, :user) if event['type'] == 'new_user_embedding'
-                process_event(event, :agent) if event['type'] == 'new_agent_embedding'
+                process_event(event, :user) if event['type'] == 'save_user_embeddings'
+                process_event(event, :agent) if event['type'] == 'save_agent_embeddings'
               end
             rescue => e
               log_info("Error: #{e}")
@@ -155,6 +155,8 @@ class MilvusDbBot
       ]
     )
    log_info("Collection: #{client.collections.get(collection_name: @collection).to_s}")
+   log_info("Result: #{result.to_s}")
+   log_info("Embeddings: #{message}")
 
    result.to_s
   rescue => e

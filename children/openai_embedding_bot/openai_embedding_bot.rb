@@ -102,15 +102,15 @@ class OpenAIEmbeddingAgent
     log_info("Listening:")
     @listening_agents = Thread.new do
       log_info("Starting Thread:")
-      @redis_client.subscribe('events') do |on|
+      @redis_client.subscribe('embeddings') do |on|
         log_info("Subscribing ...")
         on.message do |_channel, message|
           log_info("Message Received: #{message}")
           puts 'Received message'
           event = JSON.parse(message)
           @postgres_id = event['postgres_id']
-          process_event(event, :user) if event['type'] == 'persist_user_input'
-          process_event(event, :agent) if event['type'] == 'persist_agent_input'
+          process_event(event, :user) if event['type'] == 'embed_user_input'
+          process_event(event, :agent) if event['type'] == 'embed_agent_response'
         end
       end
     end
@@ -142,9 +142,9 @@ class OpenAIEmbeddingAgent
 
   def publish_response(response, type)
     log_info("Publishing Response: #{response}")
-    requester = type == :user ? :new_user_embedding : :new_agent_embedding
+    requester = type == :user ? 'save_user_embeddings' : 'save_agent_embeddings'
 
-    result = @redis_client.publish('events', { type: requester, id: @postgres_id, agent: 'openai_embedding_agent', message: response}.to_json)
+    result = @redis_client.publish('milvus', { type: requester, id: @postgres_id, agent: 'openai_embedding_agent', message: response}.to_json)
 
     log_info("Published message: #{response}, Publish result: #{result}")
     puts 'Published message.'

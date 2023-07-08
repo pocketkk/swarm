@@ -1,10 +1,10 @@
 # openai_chat_bot.rb
-require 'net/http'
-require 'uri'
-require 'json'
-require 'redis'
-require 'logger'
-require_relative 'pg_client'
+#require 'net/http'
+#require 'uri'
+#require 'json'
+#require 'redis'
+#require 'logger'
+#require_relative 'pg_client'
 require_relative 'service_nanny'
 require_relative 'openai_service'
 
@@ -50,17 +50,17 @@ class OpenAIChatBot
     @nanny.tell_mother('Processing event ...')
     response = @openai.chat(event['message'])
 
-    id = persist_message(event['message'], 'persist_user_input')
-    id_response = persist_message(response, 'persist_agent_input')
+    id = persist_message(event['message'], 'embed_user_input')
+    id_response = persist_message(response, 'embed_agent_response')
 
     publish_response(response)
   end
 
   def persist_message(message, type)
-    id = @nanny.postgres.save_message(message)
+    id = @nanny.postgres.save_message(message: message, source: type)
 
     result = @nanny.publish(
-      channel: 'events',
+      channel: 'embeddings',
       message: { type: type, postgres_id: id, message: message}.to_json
     )
     @nanny.tell_mother("Persisted message: #{message}, Persist result: #{id}, #{result}")
