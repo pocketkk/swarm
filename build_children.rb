@@ -7,7 +7,6 @@ def build_containers(path)
     next if dir =~ /\/services/ # Skip services directories
 
     next if dir =~ /\/hello_bot/
-    next if dir =~ /\/milvus_db_bot/
     next if dir =~ /\/chroma_db_bot/
 
     if File.directory?(dir)

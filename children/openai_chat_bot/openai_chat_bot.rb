@@ -16,8 +16,8 @@ begin
       tell_mother('Processing event ...')
       response = chat(event['message'])
 
-      id = persist_message(event['message'], 'embed_user_input')
-      id_response = persist_message(response, 'embed_agent_response')
+      persist_message(event['message'], 'embed_user_input')
+      persist_message(response, 'embed_agent_response')
 
       publish_response(response)
     end
@@ -30,8 +30,6 @@ begin
         message: { type: type, postgres_id: id, message: message}.to_json
       )
       tell_mother("Persisted message: #{message}, Persist result: #{id}, #{result}")
-
-      id
     end
 
     def publish_response(response)

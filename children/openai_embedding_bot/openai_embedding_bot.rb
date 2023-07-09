@@ -48,7 +48,7 @@ begin
 rescue => e
   Logger.new(LOG_PATH).error(e.message)
   Logger.new(LOG_PATH).error(e.backtrace.join("\n"))
-  Logger.new(LOG_PATH).info("Waiting in a loop ...")
+  Logger.new(LOG_PATH).info("Rescue me please!, waiting ...")
 
   loop { sleep 100 }
 end
