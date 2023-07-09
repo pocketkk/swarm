@@ -1,168 +1,54 @@
 # openai_embedding_agent.rb
-require 'net/http'
-require 'uri'
-require 'json'
-require 'redis'
-require 'logger'
+begin
+  require_relative 'nanny/lib/nanny'
 
-class OpenAIEmbeddingAgent
-  API_ENDPOINT = 'https://api.openai.com/v1/embeddings'
-  MODEL = 'text-embedding-ada-002'
-  CONTENT_TYPE = 'application/json'
   LOG_PATH = '/app/logs/open_ai_embedding_agent_'
 
-  def initialize(redis_host, redis_port)
-    @redis_host = redis_host
-    @redis_port = redis_port
-    @logger = initialize_logger
-    @redis_client = initialize_redis
-  end
+  class OpenAIEmbeddingAgent < Nanny::NannyBot
 
-  def run
-    startup
-    listen_to_agents
-    process_messages
-  rescue => e
-    handle_error(e)
-  ensure
-    shutdown
-  end
+    subscribe_to_channel :embeddings,
+      types: [:embed_user_input, :embed_agent_response],
+      callback: :process_event
 
-  private
+    private
 
-  def initialize_logger
-    Logger.new(LOG_PATH + timestamp + '.log')
-  end
+    def process_event(event)
+      type = event['type'] == 'embed_user_input' ? :user : :agent
 
-  def initialize_redis
-    Redis.new(host: @redis_host, port: @redis_port)
-  end
+      tell_mother("Processing event: #{event}")
 
-  def startup
-    puts 'Starting up ...'
-    log_info("Starting up")
-  end
+      response = @nanny.get_embedding(event['message'])
+      @postgres_id = event['postgres_id']
+      publish_response(response, type)
+    rescue => e
+      handle_error(e)
+    end
 
-  def shutdown
-    log_info("Shutting down")
-  end
+    def publish_response(response, type)
+      tell_mother("Publishing Response: #{response}")
 
-  def timestamp
-    Time.now.strftime('%Y%m%d')
-  end
+      requester = type == :user ? 'save_user_embeddings' : 'save_agent_embeddings'
 
-  def handle_error(error)
-    log_error("Error: #{error}")
-    log_error("Backtrace: #{error.backtrace.join("\n")}")
-    puts 'An error occurred (see logs)'
+      result = publish(
+        channel: 'milvus',
+        message: {
+          type: requester,
+          id: @postgres_id,
+          agent: 'openai_embedding_agent',
+          message: response
+        }.to_json
+      )
 
-    puts 'Restarting process messages.'
-    process_messages
-  end
-
-  def get_embedding(message, api_key = nil)
-    log_info("Received Message: #{message}")
-    uri = URI(API_ENDPOINT)
-
-    key = api_key || ENV['OPENAI_API_KEY']
-    request = create_request(uri, key, message)
-
-    response = send_request(uri, request)
-    parse_response(response)
-  rescue StandardError => e
-    handle_error(e)
-  end
-
-  def create_request(uri, key, message)
-    request = Net::HTTP::Post.new(uri)
-    request['Authorization'] = "Bearer #{key}"
-    request['Content-Type'] = CONTENT_TYPE
-    request.body = JSON.dump({
-      'model' => MODEL,
-      'input' => message
-    })
-
-    request
-  end
-
-  def send_request(uri, request)
-    Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
-      http.request(request)
+      tell_mother("Published message: #{response}, Publish result: #{result}")
+      response
     end
   end
 
-  def parse_response(response)
-    json_response = JSON.parse(response.body)
-    data = json_response['data']
-    data&.first&.dig('embedding')
-  end
+  OpenAIEmbeddingAgent.new.run
+rescue => e
+  Logger.new(LOG_PATH).error(e.message)
+  Logger.new(LOG_PATH).error(e.backtrace.join("\n"))
+  Logger.new(LOG_PATH).info("Waiting in a loop ...")
 
-  def listen_to_agents
-    puts 'Listening ...'
-    log_info("Listening:")
-    @listening_agents = Thread.new do
-      log_info("Starting Thread:")
-      @redis_client.subscribe('embeddings') do |on|
-        log_info("Subscribing ...")
-        on.message do |_channel, message|
-          log_info("Message Received: #{message}")
-          puts 'Received message'
-          event = JSON.parse(message)
-          @postgres_id = event['postgres_id']
-          process_event(event, :user) if event['type'] == 'embed_user_input'
-          process_event(event, :agent) if event['type'] == 'embed_agent_response'
-        end
-      end
-    end
-  rescue => e
-    handle_error(e)
-  end
-
-  def process_event(event, type)
-    puts 'Processing event ...'
-    response = process_message(event['message'])
-    publish_response(response, type)
-  rescue => e
-    handle_error(e)
-  end
-
-  def process_messages
-    loop do
-      sleep 1
-    end
-  end
-
-  def process_message(message)
-    response = get_embedding(message)
-    puts "Processed Message."
-    log_info("Processed Message: #{message}")
-    log_info("Response: #{response[0..10]}")
-    response
-  end
-
-  def publish_response(response, type)
-    log_info("Publishing Response: #{response}")
-    requester = type == :user ? 'save_user_embeddings' : 'save_agent_embeddings'
-
-    result = @redis_client.publish('milvus', { type: requester, id: @postgres_id, agent: 'openai_embedding_agent', message: response}.to_json)
-
-    log_info("Published message: #{response}, Publish result: #{result}")
-    puts 'Published message.'
-    response
-  end
-
-  def log_info(message)
-    @logger.info("#{self.class.name} - #{message}")
-  end
-
-  def log_error(message)
-    @logger.error("#{self.class.name} - #{message}")
-  end
+  loop { sleep 100 }
 end
-
-# Example usage
-redis_host = 'redis_container'
-redis_port = 6379
-
-agent = OpenAIEmbeddingAgent.new(redis_host, redis_port)
-agent.run
