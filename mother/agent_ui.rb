@@ -36,15 +36,32 @@ class AgentUI
   end
 
   def shutdown
-    # Stop listening to user input
     @listening_thread.exit if @listening_thread
     @listening_agents.exit if @listening_agents
 
-    # Stop all running agents
     agent_manager.stop_agents
 
-    # Close the UI
     Curses.close_screen
+  end
+
+  def icon_for_agent(agent)
+    return '🤖' if agent == 'mother'
+
+    found_agent = agent_manager.agents.select { |a| a.name.to_s == agent }.first
+
+    return agent unless found_agent
+
+    found_agent.icon
+  end
+
+  def color_for_agent(agent)
+    return 2 if agent == 'mother'
+
+    found_agent = agent_manager.agents.select { |a| a.name.to_s == agent }.first
+
+    return 1 unless found_agent
+
+    found_agent.color
   end
 
   def listen_to_user_input
@@ -53,13 +70,20 @@ class AgentUI
         user_input = window_manager.get_input
         if user_input == 'exit'
           @logger.info('User requested exit')
-          @queue.push('exit') # Push 'exit' to the queue so main loop will break
+          @queue.push('exit')
           break
+        end
+
+        if user_input.start_with?('search ')
+          @redis.publish('milvus_search', { type: :user_input, agent: 'mother', message: user_input}.to_json)
+        elsif user_input.start_with?('pg ')
+          @redis.publish('postgres_chat_bot', { type: :user_input, agent: 'mother', message: user_input.split(' ')[-1] }.to_json)
+        else
+          @redis.publish('events', { type: :user_input, agent: 'mother', message: user_input}.to_json)
         end
 
         window_manager.agents_count = agent_manager.agents.count
 
-        @redis.publish('events', { type: :user_input, agent: 'mother', message: user_input}.to_json)
         @queue.push({ type: :user_input, agent: 'mother', message: user_input })
       end
     end
@@ -73,7 +97,6 @@ class AgentUI
       redis_client.subscribe('events') do |on|
         on.message do |channel, message|
           event = JSON.parse(message)
-          # handle the event
           unless ['user_input', 'new_user_embedding', 'new_agent_embedding'].include?(event['type'])
             @queue.push({ type: :agent_input, agent: event['agent'], message: event['message'] })
           end
@@ -94,7 +117,7 @@ end
       window_manager.write_to_chat_window("User: #{event[:message]}")
     when :agent_input
       logger.info("Agent input: #{event[:message]}")
-      window_manager.write_to_chat_window("Agent: (#{event[:agent]}): #{event[:message]}", 3)
+      window_manager.write_to_chat_window("Agent: (#{icon_for_agent(event[:agent])}): #{event[:message]}", color_for_agent(event[:agent]))
     end
     window_manager.refresh!
   end
@@ -102,7 +125,7 @@ end
   def refresh_agent_message(agent)
     window_manager.agents_subwindow.attrset(Curses.color_pair(agent.color))  # Set color here
     window_manager.agents_subwindow.setpos(window_manager.inset_y + agent.row, window_manager.inset_x)
-    window_manager.agents_subwindow.addstr("#{agent.name}: #{agent.message}")
+    window_manager.agents_subwindow.addstr("#{agent.icon} #{agent.name.upcase}: #{agent.message}")
     window_manager.agents_subwindow.attrset(Curses::A_NORMAL)  # Reset color
   end
 

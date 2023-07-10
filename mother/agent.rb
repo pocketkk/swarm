@@ -10,15 +10,17 @@ class Agent
                 :messages,
                 :previous_message,
                 :row,
+                :icon,
                 :color
 
-  def initialize(container:, name:, row:, color:)
+  def initialize(container:, name:, row:, color:, icon: '')
     @container = container
     @color = color
     @name = name
     @row = row
     @messages = messages
     @previous_message = ''
+    @icon = icon
   end
 
   def start(queue)

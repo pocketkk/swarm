@@ -49,7 +49,7 @@ begin
         ]
       )
 
-      tell_mother("Embedded: #{message}")
+      tell_mother("ID: #{@postgres_id} - Embedded: #{message}")
 
       result.to_s
     rescue => e

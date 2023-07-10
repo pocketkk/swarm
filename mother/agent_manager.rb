@@ -61,11 +61,48 @@ class AgentManager
     milvus_db_bot = \
       Agent.new(
         name: :milvus_db_bot,
-        row: 1,
+        row: 5,
         color: 1,
+        icon: "\u{1F344}",
         container: Docker::Container.create(
           'Cmd' => ['ruby', 'milvus_db_bot.rb'],
           'Image' => 'milvus_db_bot',
+          'Tty' => true,
+          'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
+          'HostConfig' => {
+            'NetworkMode' => 'agent_network',
+            'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
+          }
+        )
+      )
+
+    milvus_search_bot = \
+      Agent.new(
+        name: :milvus_search_bot,
+        row: 4,
+        color: 6,
+        icon: "\u{1F33F}",
+        container: Docker::Container.create(
+          'Cmd' => ['ruby', 'milvus_search_bot.rb'],
+          'Image' => 'milvus_search_bot',
+          'Tty' => true,
+          'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
+          'HostConfig' => {
+            'NetworkMode' => 'agent_network',
+            'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
+          }
+        )
+      )
+
+    postgres_chat_bot = \
+      Agent.new(
+        name: :postgres_chat_bot,
+        row: 1,
+        color: 3,
+        icon: "\u{1F334}",
+        container: Docker::Container.create(
+          'Cmd' => ['ruby', 'postgres_chat_bot.rb'],
+          'Image' => 'postgres_chat_bot',
           'Tty' => true,
           'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
           'HostConfig' => {
@@ -79,7 +116,8 @@ class AgentManager
       Agent.new(
         name: :openai_chat_bot,
         row: 2,
-        color: 1,
+        color: 4,
+        icon: "\u{1F424}",
         container: Docker::Container.create(
           'Cmd' => ['ruby', 'openai_chat_bot.rb'],
           'Image' => 'openai_chat_bot',
@@ -96,7 +134,8 @@ class AgentManager
       Agent.new(
         name: :openai_embedding_bot,
         row: 3,
-        color: 1,
+        color: 5,
+        icon: "\u{1F438}",
         container: Docker::Container.create(
           'Cmd' => ['ruby', 'openai_embedding_bot.rb'],
           'Image' => 'openai_embedding_bot',
@@ -126,7 +165,13 @@ class AgentManager
     #)
     #)
 
-    @agents = [openai_chat_bot, milvus_db_bot, openai_embedding_bot]
+    @agents = [
+      openai_chat_bot,
+      milvus_db_bot,
+      openai_embedding_bot,
+      milvus_search_bot,
+      postgres_chat_bot
+    ]
   end
 
   def start_agents(queue)
