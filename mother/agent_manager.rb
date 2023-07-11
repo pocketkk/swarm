@@ -173,6 +173,9 @@ class AgentManager
       postgres_chat_bot
     ]
   end
+  def max_name_length
+    @agents.map { |agent| "#{agent.icon} #{agent.name}:".length }.max
+  end
 
   def start_agents(queue)
     @agents.each { |agent| agent.start(queue) }

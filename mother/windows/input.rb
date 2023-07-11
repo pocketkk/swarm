@@ -13,6 +13,7 @@ module Windows
     end
 
     def refresh
+      @window.setpos(1, 1)
       @window.refresh
     end
 

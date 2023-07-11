@@ -11,6 +11,7 @@ class Agent
                 :previous_message,
                 :row,
                 :icon,
+                :offset,
                 :color
 
   def initialize(container:, name:, row:, color:, icon: '')
@@ -18,6 +19,7 @@ class Agent
     @color = color
     @name = name
     @row = row
+    @offset = 0
     @messages = messages
     @previous_message = ''
     @icon = icon

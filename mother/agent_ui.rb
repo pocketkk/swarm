@@ -122,12 +122,35 @@ end
     window_manager.refresh!
   end
 
-  def refresh_agent_message(agent)
-    window_manager.agents_subwindow.attrset(Curses.color_pair(agent.color))  # Set color here
-    window_manager.agents_subwindow.setpos(window_manager.inset_y + agent.row, window_manager.inset_x)
-    window_manager.agents_subwindow.addstr("#{agent.icon} #{agent.name.upcase}: #{agent.message}")
-    window_manager.agents_subwindow.attrset(Curses::A_NORMAL)  # Reset color
-  end
+def refresh_agent_message(agent)
+  max_name_length = agent_manager.max_name_length
+  padded_name = "#{agent.icon} #{agent.name.upcase}:".ljust(max_name_length)
+
+  window_width = window_manager.agents_window.maxx - 2
+  message_space = window_width - max_name_length - 4 # magic number
+  trimmed_message = agent.message[0, message_space]
+
+  window_manager.agents_window.attrset(Curses.color_pair(agent.color))  # Set color here
+  window_manager.agents_window.setpos(window_manager.inset_y + agent.row, window_manager.inset_x - 2)
+  window_manager.agents_window.addstr("#{padded_name} #{trimmed_message}")
+  window_manager.agents_window.attrset(Curses::A_NORMAL)  # Reset color
+end
+  #def refresh_agent_message(agent)
+    #max_name_length = agent_manager.max_name_length
+    #padded_name = "#{agent.icon} #{agent.name.upcase}:".ljust(max_name_length)
+
+    #window_manager.agents_window.attrset(Curses.color_pair(agent.color))  # Set color here
+    #window_manager.agents_window.setpos(window_manager.inset_y + agent.row, window_manager.inset_x)
+    #window_manager.agents_window.addstr("#{padded_name} #{agent.message}")
+    #window_manager.agents_window.attrset(Curses::A_NORMAL)  # Reset color
+  #end
+
+  #def refresh_agent_message(agent)
+    #window_manager.agents_window.attrset(Curses.color_pair(agent.color))  # Set color here
+    #window_manager.agents_window.setpos(window_manager.inset_y + agent.row, window_manager.inset_x)
+    #window_manager.agents_window.addstr("#{agent.icon} #{agent.name.upcase}: #{agent.message}")
+    #window_manager.agents_window.attrset(Curses::A_NORMAL)  # Reset color
+  #end
 
   private
 
