@@ -9,6 +9,7 @@ module Windows
     def initialize(main_window, agents_subwindow)
       super(main_window)
 
+      @offset = 0
       @agents_subwindow = agents_subwindow
       @window = create_chat_subwindow
     end

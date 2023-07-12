@@ -13,19 +13,13 @@ class AgentUI
   end
 
   def run
-    logger.info('Starting Agent UI')
     agent_manager.start_agents(@queue)
-    logger.info('Agents started')
-    logger.info("Agents: #{agent_manager.agents}")
     listen_to_user_input
-    logger.info("Listening to user input")
     listen_to_agents
-    logger.info("Listening to agents")
 
     loop do
       event = @queue.pop # This will block until there is an event.
       break if event == 'exit'
-      @logger.info("Event: #{event}")
 
       process_event(event)
     end
@@ -78,6 +72,10 @@ class AgentUI
           @redis.publish('milvus_search', { type: :user_input, agent: 'mother', message: user_input}.to_json)
         elsif user_input.start_with?('pg ')
           @redis.publish('postgres_chat_bot', { type: :user_input, agent: 'mother', message: user_input.split(' ')[-1] }.to_json)
+        elsif user_input == 'pd'
+          window_manager.scroll_down(50)
+        elsif user_input == 'pu'
+          window_manager.scroll_up(50)
         else
           @redis.publish('events', { type: :user_input, agent: 'mother', message: user_input}.to_json)
         end
@@ -122,35 +120,19 @@ end
     window_manager.refresh!
   end
 
-def refresh_agent_message(agent)
-  max_name_length = agent_manager.max_name_length
-  padded_name = "#{agent.icon} #{agent.name.upcase}:".ljust(max_name_length)
+  def refresh_agent_message(agent)
+    max_name_length = agent_manager.max_name_length
+    padded_name = "#{agent.icon} #{agent.name.upcase}:".ljust(max_name_length)
 
-  window_width = window_manager.agents_window.maxx - 2
-  message_space = window_width - max_name_length - 4 # magic number
-  trimmed_message = agent.message[0, message_space]
+    window_width = window_manager.agents_window.maxx - 2
+    message_space = window_width - max_name_length - 4 # magic number
+    trimmed_message = agent.message[0, message_space]
 
-  window_manager.agents_window.attrset(Curses.color_pair(agent.color))  # Set color here
-  window_manager.agents_window.setpos(window_manager.inset_y + agent.row, window_manager.inset_x - 2)
-  window_manager.agents_window.addstr("#{padded_name} #{trimmed_message}")
-  window_manager.agents_window.attrset(Curses::A_NORMAL)  # Reset color
-end
-  #def refresh_agent_message(agent)
-    #max_name_length = agent_manager.max_name_length
-    #padded_name = "#{agent.icon} #{agent.name.upcase}:".ljust(max_name_length)
-
-    #window_manager.agents_window.attrset(Curses.color_pair(agent.color))  # Set color here
-    #window_manager.agents_window.setpos(window_manager.inset_y + agent.row, window_manager.inset_x)
-    #window_manager.agents_window.addstr("#{padded_name} #{agent.message}")
-    #window_manager.agents_window.attrset(Curses::A_NORMAL)  # Reset color
-  #end
-
-  #def refresh_agent_message(agent)
-    #window_manager.agents_window.attrset(Curses.color_pair(agent.color))  # Set color here
-    #window_manager.agents_window.setpos(window_manager.inset_y + agent.row, window_manager.inset_x)
-    #window_manager.agents_window.addstr("#{agent.icon} #{agent.name.upcase}: #{agent.message}")
-    #window_manager.agents_window.attrset(Curses::A_NORMAL)  # Reset color
-  #end
+    window_manager.agents_window.attrset(Curses.color_pair(agent.color))  # Set color here
+    window_manager.agents_window.setpos(window_manager.inset_y + agent.row, window_manager.inset_x - 2)
+    window_manager.agents_window.addstr("#{padded_name} #{trimmed_message}")
+    window_manager.agents_window.attrset(Curses::A_NORMAL)  # Reset color
+  end
 
   private
 

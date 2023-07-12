@@ -25,6 +25,7 @@ class WindowManager
     @messages = []
     @agents_count = 0
     @windows = [main_window, agents_window, chat_window, input_window]
+
     refresh!
   end
 
@@ -54,6 +55,14 @@ class WindowManager
 
   def inset_y
     PADDING_HEIGHT
+  end
+
+  def scroll_up(count=1)
+    count.times { chat_writer.scroll_up }
+  end
+
+  def scroll_down(count=1)
+    count.times { chat_writer.scroll_down }
   end
 
   def get_input
