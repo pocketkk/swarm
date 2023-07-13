@@ -6,8 +6,8 @@ begin
 
   class OpenAIChatBot < Nanny::NannyBot
 
-    subscribe_to_channel :events,
-      types: :user_input,
+    subscribe_to_channel ENV['CHANNEL_NAME'],
+      types: ENV['EVENT_TYPES'].split(',').map(&:to_sym),
       callback: :process_event
 
     private

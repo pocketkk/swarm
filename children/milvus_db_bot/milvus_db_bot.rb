@@ -10,8 +10,8 @@ begin
     USER = 1
     AGENT = 2
 
-    subscribe_to_channel :milvus,
-      types: [:save_user_embeddings, :save_agent_embeddings],
+    subscribe_to_channel ENV['CHANNEL_NAME'],
+      types: ENV['EVENT_TYPES'].split(',').map(&:to_sym),
       callback: :process_event
 
     private

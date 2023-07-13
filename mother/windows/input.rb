@@ -1,9 +1,7 @@
 # windows/chat.rb
 
-require_relative 'window_base'
-
 module Windows
-  class Input < WindowBase
+  class Input < Base
     attr_reader :window
 
     def initialize(main_window)

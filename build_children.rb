@@ -37,4 +37,3 @@ folders.each do |folder|
   expanded_path = File.expand_path(folder)
   build_containers(expanded_path)
 end
-

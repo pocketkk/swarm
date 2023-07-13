@@ -2,9 +2,9 @@
 begin
   require_relative 'nanny/lib/nanny'
 
-  LOG_PATH = '/app/logs/postgres_chatbot_'
+  LOG_PATH = '/app/logs/history_chatbot_'
 
-  class PostgresChatBot < Nanny::NannyBot
+  class HistoryChatBot < Nanny::NannyBot
 
     subscribe_to_channel ENV['CHANNEL_NAME'],
       types: ENV['EVENT_TYPES'].split(',').map(&:to_sym),
@@ -15,7 +15,8 @@ begin
     def process_event(event)
       tell_mother('Processing event ...')
 
-      response = @nanny.postgres.messages_by_ids(event['message'])
+      sql = event['message']
+      response = @nanny.postgres.query(sql, args)
 
       publish_response(response)
     end

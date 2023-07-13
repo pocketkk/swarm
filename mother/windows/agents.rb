@@ -1,9 +1,7 @@
 # windows/agent.rb
 
-require_relative 'window_base'
-
 module Windows
-  class Agents < WindowBase
+  class Agents < Base
     attr_reader :window
 
     def initialize(main_window, agents_count)

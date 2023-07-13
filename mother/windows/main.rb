@@ -1,7 +1,5 @@
 # windows/agent.rb
 
-require_relative 'window_base'
-
 module Windows
   class Main
     include Curses

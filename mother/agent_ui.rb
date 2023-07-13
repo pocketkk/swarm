@@ -1,10 +1,11 @@
 # frozen_string_literal: true
+require_relative 'windows/manager'
 
 class AgentUI
   def initialize
     @queue = Queue.new
     @agent_manager = AgentManager.new
-    @window_manager = WindowManager.new
+    @window_manager = Windows::Manager.new
     @window_manager.agents_count = agent_manager.agents.count
     @listening_thread = nil
     @listening_agents = nil

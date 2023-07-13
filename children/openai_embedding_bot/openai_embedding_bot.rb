@@ -6,8 +6,8 @@ begin
 
   class OpenAIEmbeddingAgent < Nanny::NannyBot
 
-    subscribe_to_channel :embeddings,
-      types: [:embed_user_input, :embed_agent_response],
+    subscribe_to_channel ENV['CHANNEL_NAME'],
+      types: ENV['EVENT_TYPES'].split(',').map(&:to_sym),
       callback: :process_event
 
     private

@@ -68,7 +68,12 @@ class AgentManager
           'Cmd' => ['ruby', 'milvus_db_bot.rb'],
           'Image' => 'milvus_db_bot',
           'Tty' => true,
-          'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
+          'Env' => [
+            "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
+            "CHANNEL_NAME=milvus",
+            "EVENT_TYPES=save_user_embeddings,save_agent_embeddings",
+            "PERSIST=true"
+          ],
           'HostConfig' => {
             'NetworkMode' => 'agent_network',
             'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
@@ -86,7 +91,12 @@ class AgentManager
           'Cmd' => ['ruby', 'milvus_search_bot.rb'],
           'Image' => 'milvus_search_bot',
           'Tty' => true,
-          'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
+          'Env' => [
+            "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
+            "CHANNEL_NAME=milvus_search",
+            "EVENT_TYPES=user_input, agent_input",
+            "PERSIST=true"
+          ],
           'HostConfig' => {
             'NetworkMode' => 'agent_network',
             'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
@@ -104,7 +114,12 @@ class AgentManager
           'Cmd' => ['ruby', 'postgres_chat_bot.rb'],
           'Image' => 'postgres_chat_bot',
           'Tty' => true,
-          'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
+          'Env' => [
+            "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
+            "CHANNEL_NAME=postgres_chat_bot",
+            "EVENT_TYPES=user_input",
+            "PERSIST=true"
+          ],
           'HostConfig' => {
             'NetworkMode' => 'agent_network',
             'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
@@ -122,7 +137,12 @@ class AgentManager
           'Cmd' => ['ruby', 'openai_chat_bot.rb'],
           'Image' => 'openai_chat_bot',
           'Tty' => true,
-          'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
+          'Env' => [
+            "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
+            "CHANNEL_NAME=events",
+            "EVENT_TYPES=user_input",
+            "PERSIST=true"
+          ],
           'HostConfig' => {
             'NetworkMode' => 'agent_network',
             'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
@@ -140,7 +160,12 @@ class AgentManager
           'Cmd' => ['ruby', 'openai_embedding_bot.rb'],
           'Image' => 'openai_embedding_bot',
           'Tty' => true,
-          'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
+          'Env' => [
+            "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
+            "CHANNEL_NAME=embeddings",
+            "EVENT_TYPES=embed_user_input,embed_agent_response",
+            "PERSIST=true"
+          ],
           'HostConfig' => {
             'NetworkMode' => 'agent_network',
             'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']

@@ -10,8 +10,8 @@ begin
     USER = 1
     AGENT = 2
 
-    subscribe_to_channel :milvus_search,
-      types: [:user_input, :agent_input],
+    subscribe_to_channel ENV['CHANNEL_NAME'],
+      types: ENV['EVENT_TYPES'].split(',').map(&:to_sym),
       callback: :process_event
 
     private
