@@ -22,7 +22,7 @@ begin
     end
 
     def publish_response(response)
-      result = publish(channel: 'events', message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: response}.to_json)
+      result = publish(channel: 'events', message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: response }.to_json)
 
       tell_mother("Published message: #{response}, Publish result: #{result}")
 

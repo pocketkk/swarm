@@ -82,6 +82,8 @@ class AgentUI
           @redis.publish('weather', { type: :user_input, agent: 'mother', message: 'brush prairie,wa,usa'}.to_json)
         elsif user_input.start_with?('news ')
           @redis.publish('news', { type: :user_input, agent: 'mother', message: user_input.split('news ')[-1] }.to_json)
+        elsif user_input.start_with?('say ')
+          @redis.publish('eleven_labs', { type: :user_input, agent: 'mother', message: user_input.split('say ')[-1] }.to_json)
         elsif user_input == 'pd'
           window_manager.scroll_down(50)
         elsif user_input == 'pu'

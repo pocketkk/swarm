@@ -18,6 +18,8 @@ class AgentManager
     system('docker stop postgres_container')
     system('docker rm postgres_container')
 
+    system('../milvus/docker-compose up -d')
+
     @redis = Agent.new(
       name: :redis_container,
       row: 1,
@@ -60,7 +62,50 @@ class AgentManager
     @postgres.container.start
     @redis.container.start
 
+    %w(eleven_labs openai_chat milvus_db milvus_search pg_chat pg_query weather openai_embed news).each do |agent_name|
+      system("docker stop #{agent_name}")
+      system("docker rm #{agent_name}")
+    end
+
     sleep(5)
+
+    eleven_labs = \
+      Agent.new(
+        name: :eleven_labs,
+        row: 8,
+        color: 2,
+        icon: "\u{26C5}",
+        container: Docker::Container.create(
+          'name' => 'eleven_labs',
+          'Cmd' => ['ruby', 'eleven_labs_bot.rb'],
+          'Image' => 'eleven_labs_bot',
+          'Tty' => true,
+          'Env' => [
+            "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
+            "OPEN_WEATHER_API_KEY=#{ENV['OPEN_WEATHER_API_KEY']}",
+            "CHANNEL_NAME=eleven_labs",
+            "EVENT_TYPES=user_input,agent_input",
+            "PERSIST=true",
+            "ELEVEN_LABS_API_KEY=#{ENV['ELEVEN_LABS_API_KEY']}",
+            "PULSE_SERVER=unix:/tmp/.pulse-socket"
+          ],
+          'HostConfig' => {
+            'NetworkMode' => 'agent_network',
+            'Binds' => [
+              '/home/pocketkk/ai/agents/swarm/logs:/app/logs',
+              '/tmp/.pulse-socket:/tmp/.pulse-socket'
+            ],
+            'Devices' => [
+              {
+                'PathOnHost' => '/dev/snd',
+                'PathInContainer' => '/dev/snd',
+                'CgroupPermissions' => 'rwm'
+              }
+            ]
+          }
+        )
+      )
+
 
     milvus_db = \
       Agent.new(
@@ -69,6 +114,7 @@ class AgentManager
         color: 1,
         icon: "\u{1F426}",
         container: Docker::Container.create(
+          'name' => 'milvus_db',
           'Cmd' => ['ruby', 'milvus_db_bot.rb'],
           'Image' => 'milvus_db_bot',
           'Tty' => true,
@@ -92,6 +138,7 @@ class AgentManager
         color: 2,
         icon: "\u{26C5}",
         container: Docker::Container.create(
+          'name' => 'weather',
           'Cmd' => ['ruby', 'weather_bot.rb'],
           'Image' => 'weather_bot',
           'Tty' => true,
@@ -116,6 +163,7 @@ class AgentManager
         color: 1,
         icon: "\u{1F426}",
         container: Docker::Container.create(
+          'name' => 'milvus_search',
           'Cmd' => ['ruby', 'milvus_search_bot.rb'],
           'Image' => 'milvus_search_bot',
           'Tty' => true,
@@ -139,6 +187,7 @@ class AgentManager
         color: 3,
         icon: "\u{1F418}",
         container: Docker::Container.create(
+          'name' => 'pg_chat',
           'Cmd' => ['ruby', 'postgres_chat_bot.rb'],
           'Image' => 'postgres_chat_bot',
           'Tty' => true,
@@ -162,6 +211,7 @@ class AgentManager
         color: 6,
         icon: "\u{1F4F0}",
         container: Docker::Container.create(
+          'name' => 'news',
           'Cmd' => ['ruby', 'news_bot.rb'],
           'Image' => 'news_bot',
           'Tty' => true,
@@ -185,6 +235,7 @@ class AgentManager
         color: 3,
         icon: "\u{1F418}",
         container: Docker::Container.create(
+          'name' => 'pg_query',
           'Cmd' => ['ruby', 'pg_query_bot.rb'],
           'Image' => 'pg_query_bot',
           'Tty' => true,
@@ -208,6 +259,7 @@ class AgentManager
         color: 5,
         icon: "\u{1F916}",
         container: Docker::Container.create(
+          'name' => 'openai_chat',
           'Cmd' => ['ruby', 'openai_chat_bot.rb'],
           'Image' => 'openai_chat_bot',
           'Tty' => true,
@@ -231,6 +283,7 @@ class AgentManager
         color: 5,
         icon: "\u{1F916}",
         container: Docker::Container.create(
+          'name' => 'openai_embed',
           'Cmd' => ['ruby', 'openai_embedding_bot.rb'],
           'Image' => 'openai_embedding_bot',
           'Tty' => true,
@@ -255,7 +308,8 @@ class AgentManager
       pg_chat,
       pg_query,
       weather,
-      news
+      news,
+      eleven_labs,
     ]
   end
 
