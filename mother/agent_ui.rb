@@ -5,8 +5,7 @@ class AgentUI
   def initialize
     @queue = Queue.new
     @agent_manager = AgentManager.new
-    @window_manager = Windows::Manager.new
-    @window_manager.agents_count = agent_manager.agents.count
+    @window_manager = Windows::Manager.new(@agent_manager.agents.count)
     @listening_thread = nil
     @listening_agents = nil
     @logger = Logger.new('/home/pocketkk/ai/agents/swarm/logs/agent_ui.log')
@@ -42,6 +41,7 @@ class AgentUI
   def icon_for_agent(agent)
     return '🤖' if agent == 'mother'
 
+    logger.info("Looking for icon for agent: #{agent}")
     found_agent = agent_manager.agents.select { |a| a.name.to_s == agent }.first
 
     return agent unless found_agent
@@ -52,6 +52,7 @@ class AgentUI
   def color_for_agent(agent)
     return 2 if agent == 'mother'
 
+    logger.info("Looking for color for agent: #{agent}")
     found_agent = agent_manager.agents.select { |a| a.name.to_s == agent }.first
 
     return 1 unless found_agent
@@ -72,13 +73,21 @@ class AgentUI
         if user_input.start_with?('search ')
           @redis.publish('milvus_search', { type: :user_input, agent: 'mother', message: user_input}.to_json)
         elsif user_input.start_with?('pg ')
-          @redis.publish('postgres_chat_bot', { type: :user_input, agent: 'mother', message: user_input.split(' ')[-1] }.to_json)
+          @redis.publish('pg_chat', { type: :user_input, agent: 'mother', message: user_input.split(' ')[-1] }.to_json)
+        elsif user_input.start_with?('pq ')
+          @redis.publish('pg_query', { type: :user_input, agent: 'mother', message: user_input.split('pq ')[-1] }.to_json)
+        elsif user_input.start_with?('weather ')
+          @redis.publish('weather', { type: :user_input, agent: 'mother', message: user_input.split('weather ')[-1] }.to_json)
+        elsif user_input.start_with?('weather')
+          @redis.publish('weather', { type: :user_input, agent: 'mother', message: 'brush prairie,wa,usa'}.to_json)
+        elsif user_input.start_with?('news ')
+          @redis.publish('news', { type: :user_input, agent: 'mother', message: user_input.split('news ')[-1] }.to_json)
         elsif user_input == 'pd'
           window_manager.scroll_down(50)
         elsif user_input == 'pu'
           window_manager.scroll_up(50)
         else
-          @redis.publish('events', { type: :user_input, agent: 'mother', message: user_input}.to_json)
+          @redis.publish('openai_chat', { type: :user_input, agent: 'mother', message: user_input}.to_json)
         end
 
         window_manager.agents_count = agent_manager.agents.count
@@ -123,11 +132,15 @@ end
 
   def refresh_agent_message(agent)
     max_name_length = agent_manager.max_name_length
-    padded_name = "#{agent.icon} #{agent.name.upcase}:".ljust(max_name_length)
+
+    logger.info("Max name length: #{max_name_length}")
+    logger.info("Agent: #{agent}")
+
+    padded_name = "#{agent.icon} #{agent.name.upcase}:".ljust(max_name_length).force_encoding('UTF-8')
 
     window_width = window_manager.agents_window.maxx - 2
     message_space = window_width - max_name_length - 4 # magic number
-    trimmed_message = agent.message[0, message_space]
+    trimmed_message = agent.message[0, message_space].force_encoding('UTF-8')
 
     window_manager.agents_window.attrset(Curses.color_pair(agent.color))  # Set color here
     window_manager.agents_window.setpos(window_manager.inset_y + agent.row, window_manager.inset_x - 2)

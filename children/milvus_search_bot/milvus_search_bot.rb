@@ -65,7 +65,7 @@ begin
     def publish_response(response, type)
       result = publish(
         channel:  'events',
-        message: { type: :agent_input, agent: 'milvus_search_bot', message: "(#{type}): Search Result: #{response}"}.to_json
+        message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: "(#{type}): Search Result: #{response}"}.to_json
       )
 
       tell_mother("Published message: #{response}, Publish result: #{result}")

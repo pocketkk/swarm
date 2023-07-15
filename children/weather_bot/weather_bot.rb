@@ -1,36 +1,41 @@
-# openai_chat_bot.rb
+# weather_bot.rb
 begin
   require_relative 'nanny/lib/nanny'
+  require 'json'
+  require 'uri'
 
-  LOG_PATH = '/app/logs/history_chatbot_'
+  LOG_PATH = '/app/logs/weather_bot_'
 
-  class HistoryChatBot < Nanny::NannyBot
+  class WeatherBot < Nanny::NannyBot
 
     subscribe_to_channel ENV['CHANNEL_NAME'],
       types: ENV['EVENT_TYPES'].split(',').map(&:to_sym),
       callback: :process_event
 
-    private
-
     def process_event(event)
       tell_mother('Processing event ...')
 
-      sql = event['message']
-      response = @nanny.postgres.query(sql, args)
+      location = event['message']
 
-      publish_response(response)
+      weather = weather_service.get_weather(location)
+
+      publish_response(weather)
+    rescue => e
+      tell_mother("Error: #{e.message}")
+      tell_mother("Backtrace: #{e.backtrace.join("\n")}")
+
+      publish_response("No bueno! #{e.message}")
     end
 
     def publish_response(response)
       result = publish(channel: 'events', message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: response}.to_json)
-
       tell_mother("Published message: #{response}, Publish result: #{result}")
 
       response
     end
   end
 
-  PostgresChatBot.new.run
+  WeatherBot.new.run
 rescue => e
   Logger.new(LOG_PATH).error(e.message)
   Logger.new(LOG_PATH).error(e.backtrace.join("\n"))

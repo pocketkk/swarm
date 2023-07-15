@@ -34,7 +34,7 @@ begin
         message: {
           type: requester,
           id: @postgres_id,
-          agent: 'openai_embedding_agent',
+          agent: ENV['CHANNEL_NAME'],
           message: response
         }.to_json
       )

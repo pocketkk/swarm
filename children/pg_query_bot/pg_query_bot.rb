@@ -1,10 +1,10 @@
-# openai_chat_bot.rb
+# pg_query_bot.rb
 begin
   require_relative 'nanny/lib/nanny'
 
-  LOG_PATH = '/app/logs/history_chatbot_'
+  LOG_PATH = '/app/logs/pg_query_bot_'
 
-  class HistoryChatBot < Nanny::NannyBot
+  class PgQueryBot < Nanny::NannyBot
 
     subscribe_to_channel ENV['CHANNEL_NAME'],
       types: ENV['EVENT_TYPES'].split(',').map(&:to_sym),
@@ -15,7 +15,9 @@ begin
     def process_event(event)
       tell_mother('Processing event ...')
 
-      sql = event['message']
+      sql, args = event['message'].split('|')
+      args = args.split(',') if args
+
       response = @nanny.postgres.query(sql, args)
 
       publish_response(response)
@@ -30,7 +32,7 @@ begin
     end
   end
 
-  PostgresChatBot.new.run
+  PgQueryBot.new.run
 rescue => e
   Logger.new(LOG_PATH).error(e.message)
   Logger.new(LOG_PATH).error(e.backtrace.join("\n"))

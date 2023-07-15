@@ -2,7 +2,11 @@ class AgentManager
   Docker.options[:read_timeout] = 500
   Docker.options[:write_timeout] = 500
 
-  attr_reader :agents
+  ENVS = [
+
+  ]
+
+  #attr_reader :agents
 
   def initialize
     #system('docker network create agent_network') unless system('docker network inspect agent_network')
@@ -58,19 +62,19 @@ class AgentManager
 
     sleep(5)
 
-    milvus_db_bot = \
+    milvus_db = \
       Agent.new(
-        name: :milvus_db_bot,
+        name: :milvus_db,
         row: 5,
         color: 1,
-        icon: "\u{1F344}",
+        icon: "\u{1F426}",
         container: Docker::Container.create(
           'Cmd' => ['ruby', 'milvus_db_bot.rb'],
           'Image' => 'milvus_db_bot',
           'Tty' => true,
           'Env' => [
             "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
-            "CHANNEL_NAME=milvus",
+            "CHANNEL_NAME=milvus_db",
             "EVENT_TYPES=save_user_embeddings,save_agent_embeddings",
             "PERSIST=true"
           ],
@@ -81,12 +85,36 @@ class AgentManager
         )
       )
 
-    milvus_search_bot = \
+    weather = \
       Agent.new(
-        name: :milvus_search_bot,
+        name: :weather,
+        row: 7,
+        color: 2,
+        icon: "\u{26C5}",
+        container: Docker::Container.create(
+          'Cmd' => ['ruby', 'weather_bot.rb'],
+          'Image' => 'weather_bot',
+          'Tty' => true,
+          'Env' => [
+            "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
+            "OPEN_WEATHER_API_KEY=#{ENV['OPEN_WEATHER_API_KEY']}",
+            "CHANNEL_NAME=weather",
+            "EVENT_TYPES=user_input,agent_input",
+            "PERSIST=true"
+          ],
+          'HostConfig' => {
+            'NetworkMode' => 'agent_network',
+            'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
+          }
+        )
+      )
+
+    milvus_search = \
+      Agent.new(
+        name: :milvus_search,
         row: 4,
-        color: 6,
-        icon: "\u{1F33F}",
+        color: 1,
+        icon: "\u{1F426}",
         container: Docker::Container.create(
           'Cmd' => ['ruby', 'milvus_search_bot.rb'],
           'Image' => 'milvus_search_bot',
@@ -94,7 +122,7 @@ class AgentManager
           'Env' => [
             "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
             "CHANNEL_NAME=milvus_search",
-            "EVENT_TYPES=user_input, agent_input",
+            "EVENT_TYPES=user_input,agent_input",
             "PERSIST=true"
           ],
           'HostConfig' => {
@@ -104,19 +132,19 @@ class AgentManager
         )
       )
 
-    postgres_chat_bot = \
+    pg_chat = \
       Agent.new(
-        name: :postgres_chat_bot,
+        name: :pg_chat,
         row: 1,
         color: 3,
-        icon: "\u{1F334}",
+        icon: "\u{1F418}",
         container: Docker::Container.create(
           'Cmd' => ['ruby', 'postgres_chat_bot.rb'],
           'Image' => 'postgres_chat_bot',
           'Tty' => true,
           'Env' => [
             "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
-            "CHANNEL_NAME=postgres_chat_bot",
+            "CHANNEL_NAME=pg_chat",
             "EVENT_TYPES=user_input",
             "PERSIST=true"
           ],
@@ -127,19 +155,65 @@ class AgentManager
         )
       )
 
-    openai_chat_bot = \
+    news = \
       Agent.new(
-        name: :openai_chat_bot,
+        name: :news,
+        row: 8,
+        color: 6,
+        icon: "\u{1F4F0}",
+        container: Docker::Container.create(
+          'Cmd' => ['ruby', 'news_bot.rb'],
+          'Image' => 'news_bot',
+          'Tty' => true,
+          'Env' => [
+            "NEWS_API_KEY=#{ENV['NEWS_API_KEY']}",
+            "CHANNEL_NAME=news_bot",
+            "EVENT_TYPES=user_input,agent_input",
+            "PERSIST=true"
+          ],
+          'HostConfig' => {
+            'NetworkMode' => 'agent_network',
+            'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
+          }
+        )
+      )
+
+    pg_query = \
+      Agent.new(
+        name: :pg_query,
+        row: 6,
+        color: 3,
+        icon: "\u{1F418}",
+        container: Docker::Container.create(
+          'Cmd' => ['ruby', 'pg_query_bot.rb'],
+          'Image' => 'pg_query_bot',
+          'Tty' => true,
+          'Env' => [
+            "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
+            "CHANNEL_NAME=pg_query",
+            "EVENT_TYPES=user_input",
+            "PERSIST=true"
+          ],
+          'HostConfig' => {
+            'NetworkMode' => 'agent_network',
+            'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
+          }
+        )
+      )
+
+    openai_chat = \
+      Agent.new(
+        name: :openai_chat,
         row: 2,
-        color: 4,
-        icon: "\u{1F424}",
+        color: 5,
+        icon: "\u{1F916}",
         container: Docker::Container.create(
           'Cmd' => ['ruby', 'openai_chat_bot.rb'],
           'Image' => 'openai_chat_bot',
           'Tty' => true,
           'Env' => [
             "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
-            "CHANNEL_NAME=events",
+            "CHANNEL_NAME=openai_chat",
             "EVENT_TYPES=user_input",
             "PERSIST=true"
           ],
@@ -150,19 +224,19 @@ class AgentManager
         )
       )
 
-    openai_embedding_bot = \
+    openai_embedding = \
       Agent.new(
-        name: :openai_embedding_bot,
+        name: :openai_embed,
         row: 3,
         color: 5,
-        icon: "\u{1F438}",
+        icon: "\u{1F916}",
         container: Docker::Container.create(
           'Cmd' => ['ruby', 'openai_embedding_bot.rb'],
           'Image' => 'openai_embedding_bot',
           'Tty' => true,
           'Env' => [
             "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
-            "CHANNEL_NAME=embeddings",
+            "CHANNEL_NAME=openai_embed",
             "EVENT_TYPES=embed_user_input,embed_agent_response",
             "PERSIST=true"
           ],
@@ -173,31 +247,27 @@ class AgentManager
         )
       )
 
-    #chroma_db_bot = \
-    #Agent.new(
-    #name: :chroma_db_bot,
-    #row: 3,
-    #color: 2,
-    #container: Docker::Container.create(
-    #'Cmd' => ['ruby', 'chroma_db_bot.rb'],
-    #'Image' => 'chroma_db_bot',
-    #'Tty' => true,
-    #'Env' => ["OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}"],
-    #'HostConfig' => {
-    #'NetworkMode' => 'agent_network',
-    #'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
-    #}
-    #)
-    #)
-
     @agents = [
-      openai_chat_bot,
-      milvus_db_bot,
-      openai_embedding_bot,
-      milvus_search_bot,
-      postgres_chat_bot
+      openai_chat,
+      milvus_db,
+      openai_embedding,
+      milvus_search,
+      pg_chat,
+      pg_query,
+      weather,
+      news
     ]
   end
+
+  def agents
+    sorted = @agents.sort { |a, b| a.name <=> b.name}
+    sorted.map { |agent| agent.row = sorted.index(agent) + 1; agent }
+  end
+
+  def add_agent(agent)
+    @agents << agent
+  end
+
   def max_name_length
     @agents.map { |agent| "#{agent.icon} #{agent.name}:".length }.max
   end

@@ -19,12 +19,12 @@ module Windows
     attr_reader :messages, :windows
     attr_accessor :agents_count
 
-    def initialize
+    def initialize(agents_count)
       init_screen
       init_colors
       @logger = Logger.new('/home/pocketkk/ai/agents/swarm/logs/window_manager.log')
       @messages = []
-      @agents_count = 0
+      @agents_count = agents_count
       @windows = [main_window, agents_window, chat_window, input_window]
 
       refresh!
@@ -92,8 +92,16 @@ module Windows
       init_pair(4, COLOR_YELLOW, COLOR_BLACK)
       init_pair(5, COLOR_MAGENTA, COLOR_BLACK)
       init_pair(6, COLOR_CYAN, COLOR_BLACK)
-      init_pair(7, COLOR_BLACK, COLOR_GREEN)
-      init_pair(8, COLOR_BLACK, COLOR_WHITE)
+      init_pair(7, COLOR_WHITE, COLOR_BLACK)
+
+
+      init_pair(8, COLOR_BLACK, COLOR_GREEN)
+      init_pair(9, COLOR_BLACK, COLOR_WHITE)
+      init_pair(14, COLOR_BLACK, COLOR_RED)
+      init_pair(10, COLOR_BLACK, COLOR_BLUE)
+      init_pair(11, COLOR_BLACK, COLOR_YELLOW)
+      init_pair(12, COLOR_BLACK, COLOR_MAGENTA)
+      init_pair(13, COLOR_BLACK, COLOR_CYAN)
     end
   end
 end

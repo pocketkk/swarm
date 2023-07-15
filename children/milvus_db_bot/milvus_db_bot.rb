@@ -1,4 +1,4 @@
-# milvus_db_bot.rb
+#  milvus_db_bot.rb
 
 begin
   require_relative 'nanny/lib/nanny'
@@ -59,7 +59,7 @@ begin
     def publish_response(response, type)
       result = publish(
         channel:  'events',
-        message: { type: :agent_input, agent: 'milvus_db_bot', message: "(#{type}): Saved to memory."}.to_json
+        message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: "(#{type}): Saved to memory."}.to_json
       )
 
       tell_mother("Published message: #{response}, Publish result: #{result}")

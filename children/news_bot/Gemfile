@@ -1,0 +1,10 @@
+# Gemfile
+
+source 'https://rubygems.org'
+
+gem 'net-http'
+gem 'json'
+gem 'redis'
+gem 'pg'
+gem 'nanny', path: '/app/nanny'
+gem 'news-api'
