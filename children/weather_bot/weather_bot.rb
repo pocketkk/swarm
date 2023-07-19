@@ -28,6 +28,7 @@ begin
     end
 
     def publish_response(response)
+      publish(channel: 'openai_chat', message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: "Please provide a very short summary: #{response}"}.to_json)
       result = publish(channel: 'events', message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: response}.to_json)
       tell_mother("Published message: #{response}, Publish result: #{result}")
 

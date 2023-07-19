@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require_relative 'windows/manager'
+require_relative '../metal/services/bark'
 
 class AgentUI
   def initialize
@@ -16,6 +17,10 @@ class AgentUI
     agent_manager.start_agents(@queue)
     listen_to_user_input
     listen_to_agents
+
+    sleep 2
+
+    Bark.call(text: 'Hello, Jason.  I am back online.', voice: 'al_franken')
 
     loop do
       event = @queue.pop # This will block until there is an event.
@@ -61,6 +66,8 @@ class AgentUI
   end
 
   def listen_to_user_input
+    @redis.publish('eleven_labs', { type: :user_input, agent: 'mother', message: "Ahh, i'm back.  Hi Jason, How can i help?" }.to_json)
+
     @listening_thread = Thread.new do
       loop do
         user_input = window_manager.get_input
@@ -83,7 +90,7 @@ class AgentUI
         elsif user_input.start_with?('news ')
           @redis.publish('news', { type: :user_input, agent: 'mother', message: user_input.split('news ')[-1] }.to_json)
         elsif user_input.start_with?('say ')
-          @redis.publish('eleven_labs', { type: :user_input, agent: 'mother', message: user_input.split('say ')[-1] }.to_json)
+          Bark.call(text: user_input.split('say ')[-1], voice: 'al_franken')
         elsif user_input == 'pd'
           window_manager.scroll_down(50)
         elsif user_input == 'pu'
@@ -134,10 +141,6 @@ end
 
   def refresh_agent_message(agent)
     max_name_length = agent_manager.max_name_length
-
-    logger.info("Max name length: #{max_name_length}")
-    logger.info("Agent: #{agent}")
-
     padded_name = "#{agent.icon} #{agent.name.upcase}:".ljust(max_name_length).force_encoding('UTF-8')
 
     window_width = window_manager.agents_window.maxx - 2

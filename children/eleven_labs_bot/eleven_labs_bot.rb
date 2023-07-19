@@ -1,6 +1,7 @@
-# openai_chat_bot.rb
+# eleven_labs_bot.rb
 begin
   require_relative 'nanny/lib/nanny'
+  require 'open3'
 
   LOG_PATH = '/app/logs/eleven_labs_'
 
@@ -14,7 +15,7 @@ begin
     end
 
     def convert_text_to_speech(text)
-      uri = URI(API_ENDPOINT + @voice_id)
+      uri = URI(API_ENDPOINT + @voice_id + '/stream')
       @nanny.tell_mother("URI: #{uri}")
 
       http = Net::HTTP.new(uri.host, uri.port)
@@ -22,7 +23,7 @@ begin
 
       request = Net::HTTP::Post.new(uri.request_uri)
       request["xi-api-key"] = @api_key
-      request["Content-Type"] = "application/json"  # Add this line
+      request["Content-Type"] = "application/json"
       request.body = {
         text: text,
         model_id: "eleven_monolingual_v1",
@@ -34,17 +35,20 @@ begin
         }
       }.to_json
 
-      response = http.request(request)
-
-      time = Time.now.strftime('%Y%m%d%H%M%S')
-      file_name = "output_#{time}.mp3"
-
-      if response.code.to_i == 200
-        File.write(file_name, response.body)
-        file_name
-      else
-        @nanny.tell_mother("Error: #{response.code} - #{response.message}")
-        'Error converting text to speech.'
+      http.request(request) do |response|
+        if response.code.to_i == 200
+          Open3.popen2('ffplay -nodisp -autoexit -i pipe:0') do |stdin, stdout, thread|
+            response.read_body do |chunk|
+              stdin.write(chunk)
+            end
+            stdin.close
+            thread.join.value
+          end
+          'Audio played.'
+        else
+          @nanny.tell_mother("Error: #{response.code} - #{response.message}")
+          'Error converting text to speech.'
+        end
       end
     end
   end
@@ -62,8 +66,9 @@ begin
 
       text = event['message']
       tell_mother("Text to speech: #{text}")
+      tell_mother("ENV: #{ENV['ELEVEN_LABS_API_KEY']}, #{ENV['VOICE']}")
 
-      response = TextToSpeechService.new(ENV['ELEVEN_LABS_API_KEY'], 'EXAVITQu4vr4xnSDxMaL', @nanny).convert_text_to_speech(text)
+      response = TextToSpeechService.new(ENV['ELEVEN_LABS_API_KEY'], ENV['VOICE'], @nanny).convert_text_to_speech(text)
       publish_response(response)
     rescue => e
       tell_mother("Error: #{e.backtrace.join("\n")}")
@@ -73,9 +78,9 @@ begin
     def publish_response(response)
       tell_mother("Playing response: #{response}")
 
-      output = response.gsub('.mp3','.wav')
-      system("ffmpeg -i #{response} #{output}")
-      system("paplay #{output}")
+      #output = response.gsub('.mp3','.wav')
+      #system("ffmpeg -i #{response} #{output}")
+      #system("paplay #{output}")
 
       result = publish(channel: 'events', message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: response }.to_json)
 
