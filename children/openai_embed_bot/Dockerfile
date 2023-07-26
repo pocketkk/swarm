@@ -9,6 +9,6 @@ COPY . /app
 RUN bundle install
 RUN mkdir /app/logs
 
-CMD ["ruby", "milvus_search_bot.rb"]
+CMD ["ruby", "openai_chat_bot.rb"]
 
-VOLUME ["/app/logs"]
+VOLUME [ "/app/logs" ]

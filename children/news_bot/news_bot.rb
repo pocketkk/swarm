@@ -12,9 +12,11 @@ begin
       callback: :process_event
 
     def initialize
-      @newsapi = News.new(ENV['NEWS_API_KEY'])
-
       super
+
+      tell_mother("Initializing NewsBot...#{ENV['NEWS_API_KEY']}")
+
+      @newsapi = News.new(ENV['NEWS_API_KEY'])
     end
 
     private
@@ -22,6 +24,7 @@ begin
     def process_event(event)
       tell_mother('Processing event...')
       tell_mother("Event: #{event}")
+      tell_mother("ENV: #{ENV['NEWS_API_KEY']}")
 
       if event['message'].split(',')[0] == 'today'
         news = @newsapi.get_top_headlines(sources: 'bbc-news')

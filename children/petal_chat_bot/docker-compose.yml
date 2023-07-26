@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  milvus_search_bot:
+  openai_chat_bot:
     build:
       context: .
       dockerfile: Dockerfile

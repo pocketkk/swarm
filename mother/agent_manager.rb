@@ -4,7 +4,6 @@ class AgentManager
 
   def initialize
     prepare_resources
-    sleep(5)
 
     #eleven_labs = \
       #Agent.new(
@@ -189,7 +188,7 @@ class AgentManager
     @postgres.container.start
     @redis.container.start
 
-    %w(eleven_labs openai_chat milvus_db milvus_search pg_chat pg_query weather openai_embed news).each do |agent_name|
+    %w(openai_chat milvus_db milvus_search pg_chat pg_query weather openai_embed news).each do |agent_name|
       system("docker stop #{agent_name}")
       system("docker rm #{agent_name}")
     end

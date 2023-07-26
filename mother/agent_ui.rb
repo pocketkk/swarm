@@ -20,7 +20,7 @@ class AgentUI
 
     sleep 2
 
-    Bark.call(text: 'Hello, Jason.  I am back online.', voice: 'al_franken')
+    Thread.new { Bark.call(text: 'Hello, Jason.  I am back online.', voice: 'al_franken') }
 
     loop do
       event = @queue.pop # This will block until there is an event.

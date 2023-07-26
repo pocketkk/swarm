@@ -42,6 +42,7 @@ class Agent
         "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
         "OPEN_WEATHER_API_KEY=#{ENV['OPEN_WEATHER_API_KEY']}",
         "ELEVEN_LABS_API_KEY=#{ENV['ELEVEN_LABS_API_KEY']}",
+        "NEWS_API_KEY=#{ENV['NEWS_API_KEY']}",
         "CHANNEL_NAME=#{channel_name}",
         "EVENT_TYPES=#{event_types.join(',')}",
         "PERSIST=true"

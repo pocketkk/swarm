@@ -14,6 +14,14 @@ begin
       types: ENV['EVENT_TYPES'].split(',').map(&:to_sym),
       callback: :process_event
 
+    def initialize
+      super
+
+      @collection = 'conversations'
+      @client = Milvus::Client.new(url: 'http://milvus-standalone:9091')
+      @client.collections.load(collection_name: @collection)
+    end
+
     private
 
     attr_reader :collection, :client
@@ -22,8 +30,6 @@ begin
       type = event['type'].to_sym
       tell_mother('Processing event ...')
 
-      @collection = 'conversations'
-      @client = Milvus::Client.new(url: 'http://milvus-standalone:9091')
 
       response = search_message(event['message'])
       publish_response(response, event['type'])
@@ -34,8 +40,7 @@ begin
 
       embedding = get_embedding(message)
 
-      client.collections.get(collection_name: @collection)
-      client.collections.load(collection_name: @collection)
+      #client.collections.get(collection_name: @collection)
 
       result = client.search(
         collection_name: @collection,
@@ -50,11 +55,14 @@ begin
       )
 
       client.collections.release(collection_name: @collection)
+      tell_mother("Search Result: #{result}.")
 
-      ids = result["results"]["fields_data"][0]["Field"]["Scalars"]["Data"]["LongData"]["data"]
+      data = result.dig("results", "fields_data", 0, "Field", "Scalars", "Data", "LongData", "data")
+      return 'No results found' if data.nil?
 
-      tell_mother("Search Result: #{ids.class.name} | #{ids}")
+      #data = result["results"]["fields_data"][0]["Field"]["Scalars"]["Data"]["LongData"]["data"]
 
+      tell_mother("Search Result: #{data.class.name} | #{data}")
       tell_mother("Search Result: #{result}")
 
       result.to_s
@@ -73,6 +81,7 @@ begin
   end
 
   MilvusSearchBot.new.run
+
 rescue => e
   Logger.new(LOG_PATH).error(e.message)
   Logger.new(LOG_PATH).error(e.backtrace.join("\n"))
