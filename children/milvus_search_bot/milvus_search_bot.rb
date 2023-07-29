@@ -19,10 +19,54 @@ begin
 
       @collection = 'conversations'
       @client = Milvus::Client.new(url: 'http://milvus-standalone:9091')
-      @client.collections.load(collection_name: @collection)
+      tell_mother("Client Health: #{client.health}")
+      load_response = load_collection(@collection)
+      tell_mother("Client Loaded: #{load_response}")
     end
 
     private
+
+    def load_collection(collection_name)
+      uri = URI.parse("http://milvus-standalone:9091/api/v1/collection/load")
+
+      header = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+
+      http = Net::HTTP.new(uri.host, uri.port)
+
+      request = Net::HTTP::Post.new(uri.request_uri, header)
+      request.body = {
+        collection_name: collection_name
+      }.to_json
+
+      response = http.request(request)
+
+      response.body
+    end
+
+    def create_index(collection_name, field_name)
+      uri = URI.parse("http://milvus-standalone:9091/api/v1/index")
+
+      extra_params = [
+        {"key" => "metric_type", "value" => "L2"},
+        {"key" => "index_type", "value" => "IVF_FLAT"},
+        {"key" => "params", "value" => "{\"nlist\":1024}"}
+      ]
+
+      header = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+
+      http = Net::HTTP.new(uri.host, uri.port)
+
+      request = Net::HTTP::Post.new(uri.request_uri, header)
+      request.body = {
+        collection_name: collection_name,
+        field_name: field_name,
+        extra_params: extra_params
+      }.to_json
+
+      response = http.request(request)
+
+      response.body
+    end
 
     attr_reader :collection, :client
 
@@ -40,13 +84,14 @@ begin
 
       embedding = get_embedding(message)
 
-      #client.collections.get(collection_name: @collection)
+      #result = client.collections.load(collection_name: @collection)
+      #tell_mother("Collection loaded: #{result}")
 
       result = client.search(
         collection_name: @collection,
-        output_fields: ["id"],
+        output_fields: ["postgres_id"],
         anns_field: "embedding",
-        top_k: "5",
+        top_k: "2",
         params: "{\"nprobe\": 10}",
         metric_type: "L2",
         round_decimal: "-1",
@@ -54,7 +99,7 @@ begin
         dsl_type: 1
       )
 
-      client.collections.release(collection_name: @collection)
+      #client.collections.release(collection_name: @collection)
       tell_mother("Search Result: #{result}.")
 
       data = result.dig("results", "fields_data", 0, "Field", "Scalars", "Data", "LongData", "data")

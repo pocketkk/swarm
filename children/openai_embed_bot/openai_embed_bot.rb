@@ -33,7 +33,7 @@ begin
         channel: 'milvus_db',
         message: {
           type: requester,
-          id: @postgres_id,
+          postgres_id: @postgres_id,
           agent: ENV['CHANNEL_NAME'],
           message: response
         }.to_json

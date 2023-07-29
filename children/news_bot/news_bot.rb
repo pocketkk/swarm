@@ -32,15 +32,15 @@ begin
         args = event['message'].split(',')
         query = args.select { |arg| arg.start_with?('q') }.first.split('=')[1]
         #sources = args.select { |arg| arg.start_with?('s') }.first.split('=')[1].split('|')
-        from = args.select { |arg| arg.start_with?('f') }.first.split('=')[1]
-        to = args.select { |arg| arg.start_with?('t') }.first.split('=')[1]
+        from = args.select { |arg| arg.start_with?('f') }.first.split('=')[1] rescue (Time.now - (60*60*24)).strftime('%Y-%m-%d')
+        to = args.select { |arg| arg.start_with?('t') }.first.split('=')[1] rescue Time.now.strftime('%Y-%m-%d')
         language = 'en'
-        domains = args.select { |arg| arg.start_with?('d') }.first.split('=')[1].split('|')
-        exclude_domains = args.select { |arg| arg.start_with?('ed') }.first.split('=')[1].split('|')
-        page_size = args.select { |arg| arg.start_with?('ps') }.first.split('=')[1]
-        page = args.select { |arg| arg.start_with?('p') }.first.split('=')[1]
+        domains = args.select { |arg| arg.start_with?('d') }.first.split('=')[1].split('|') rescue nil
+        exclude_domains = args.select { |arg| arg.start_with?('ed') }.first.split('=')[1].split('|') rescue nil
+        page_size = args.select { |arg| arg.start_with?('ps') }.first.split('=')[1] rescue nil
+        page = args.select { |arg| arg.start_with?('p') }.first.split('=')[1] rescue nil
 
-        news = @newsapi.get_everything(q: query, from: from, to: to, sortBy: 'popularity')
+        news = @newsapi.get_everything(q: query, from: from, to: to, pageSize: 20, sortBy: 'popularity')
       end
 
       tell_mother("News: #{news}")
@@ -50,8 +50,7 @@ begin
 
       publish_response(news_string)
     rescue => e
-      tell_mother("Error: #{e.backtrace.join("\n")}")
-      tell_mother("Error: #{e.message}")
+      handle_error(e)
     end
 
     def publish_response(news)
