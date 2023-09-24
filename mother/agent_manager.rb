@@ -42,6 +42,48 @@ class AgentManager
         #)
       #)
 
+
+    aws_polly = \
+      Agent.new(
+        name: :aws_polly,
+        color: 2,
+        icon: "\u{1F60A}",
+        channel_name: 'aws_polly',
+        event_types: ['user_input', 'agent_input'],
+        container: Docker::Container.create(
+          'name' => 'aws_polly',
+          'Cmd' => ['ruby', 'aws_polly_bot.rb'],
+          'Image' => 'aws_polly_bot',
+          'Tty' => true,
+          'Env' => [
+            "OPENAI_API_KEY=#{ENV['OPENAI_API_KEY']}",
+            "OPEN_WEATHER_API_KEY=#{ENV['OPEN_WEATHER_API_KEY']}",
+            "AWS_ACCESS_KEY_ID=#{ENV['AWS_ACCESS_KEY_ID']}",
+            "AWS_SECRET_ACCESS_KEY=#{ENV['AWS_SECRET_ACCESS_KEY']}",
+            "CHANNEL_NAME=aws_polly",
+            "EVENT_TYPES=user_input,agent_input",
+            "PERSIST=true",
+            "PULSE_SERVER=unix:/tmp/.pulse-socket",
+            "VOICE=Kimberly"
+          ],
+          'HostConfig' => {
+            'NetworkMode' => 'agent_network',
+            'Binds' => [
+              '/home/pocketkk/ai/agents/swarm/logs:/app/logs',
+              '/home/pocketkk/ai/agents/swarm/audio_out:/app/audio_out',
+              '/tmp/.pulse-socket:/tmp/.pulse-socket'
+            ],
+            'Devices' => [
+              {
+                'PathOnHost' => '/dev/snd',
+                'PathInContainer' => '/dev/snd',
+                'CgroupPermissions' => 'rwm'
+              }
+            ]
+          }
+        )
+      )
+
     milvus_db = Agent.new(
       name: :milvus_db,
       color: 1,
@@ -105,16 +147,26 @@ class AgentManager
       event_types: ['embed_user_input', 'embed_agent_response']
     )
 
+    openai_whisper= Agent.new(
+      name: :openai_whisper,
+      color: 5,
+      icon: "\u{1F916}",
+      channel_name: 'openai_whisper',
+      event_types: ['user_input', 'agent_input']
+    )
+
     @agents = [
       openai_chat,
-      milvus_db,
       openai_embedding,
+      openai_whisper,
+      milvus_db,
       milvus_search,
       pg_chat,
       pg_query,
       weather,
       news,
       #eleven_labs,
+      aws_polly
     ]
   end
 
@@ -188,7 +240,7 @@ class AgentManager
     @postgres.container.start
     @redis.container.start
 
-    %w(openai_chat milvus_db milvus_search pg_chat pg_query weather openai_embed news).each do |agent_name|
+    %w(openai_chat openai_whisper aws_polly milvus_db milvus_search pg_chat pg_query weather openai_embed news).each do |agent_name|
       system("docker stop #{agent_name}")
       system("docker rm #{agent_name}")
     end

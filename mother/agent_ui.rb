@@ -1,4 +1,8 @@
 # frozen_string_literal: true
+require 'open3'
+require 'thread'
+require 'ruby-audio'
+
 require_relative 'windows/manager'
 require_relative '../metal/services/bark'
 
@@ -15,11 +19,15 @@ class AgentUI
 
   def run
     agent_manager.start_agents(@queue)
+
     listen_to_user_input
     listen_to_agents
 
     sleep 2
 
+    #Thread.new { record_audio }
+    Thread.new { listen_for_wake_word }
+    Thread.new { play_audio }
     Thread.new { Bark.call(text: 'Hello, Jason.  I am back online.', voice: 'al_franken') }
 
     loop do
@@ -34,9 +42,95 @@ class AgentUI
     shutdown
   end
 
+  def play_audio
+    require 'fileutils'
+
+    watch_folder = "/home/pocketkk/ai/agents/swarm/audio_out"
+    played_folder = "/home/pocketkk/ai/agents/swarm/audio_out/played"
+
+    # Create played_folder if it doesn't exist
+    Dir.mkdir(played_folder) unless File.exist?(played_folder)
+
+    while true
+      Dir.entries(watch_folder).each do |file|
+        next if File.directory?(file)
+
+        if file.match(/\.(mp3|wav)$/)
+          full_path = File.join(watch_folder, file)
+
+          # Determine the appropriate player
+          if file.match(/\.mp3$/)
+            system("mpg123 '#{full_path}' > /dev/null 2>&1")
+          elsif file.match(/\.wav$/)
+            system("aplay '#{full_path}' > /dev/null 2>&1")
+          end
+
+          # Move the file to the played folder
+          FileUtils.mv(full_path, File.join(played_folder, file))
+        end
+      end
+
+      sleep 1 # Wait 1 second before checking again
+    end
+  end
+
+
+  def listen_for_wake_word
+    queue = Queue.new
+    # python3 listen.py --keywords jarvis computer --access_key $PICO_ACCESS_KEY
+
+    # Start a thread to process the output
+    processor_thread = Thread.new do
+      while (line = queue.pop)
+        # Process each line of output here
+        @logger.info("Wake Word: #{line}")
+        text = if line.include?('start')
+                 @redis.publish('audio', { type: :user_input, agent: 'mother', message: 'start' }.to_json)
+                 'Yes?'
+               elsif line.include?('stop')
+                 @redis.publish('audio', { type: :user_input, agent: 'mother', message: 'stop' }.to_json)
+                 'Stopping'
+               else
+                 file_name = line.split('/').last.strip
+                 @redis.publish('openai_whisper', { type: :user_input, agent: 'mother', message: "/app/audio_in/#{file_name}" }.to_json)
+               end
+        @redis.publish('aws_polly', { type: :user_input, agent: 'mother', message: text }.to_json)
+      end
+    end
+
+    cmd_args = ['--keywords', 'jarvis', 'computer', '--access_key', "#{ENV['PICO_ACCESS_KEY']}"]
+    @logger.info("Running: python3 /home/pocketkk/ai/agents/swarm/porcupine/listen_and_record.py #{cmd_args.join(' ')}")
+
+    # Run the command
+    Open3.popen2e('python3', '/home/pocketkk/ai/agents/swarm/porcupine/listen_and_record.py', *cmd_args) do |_, stdout_err, wait_thr|
+      stdout_err.each do |line|
+        # Push each line of output into the queue to be processed
+        @logger.info("Wake Word: #{line}")
+        queue.push(line)
+      end
+
+      exit_status = wait_thr.value
+      unless exit_status.success?
+        @logger.error("Command exited with status: #{exit_status.exitstatus}")
+      end
+    end
+
+    # Signal the processor thread that there's no more output
+    queue.push(nil)
+
+    # Wait for the processor thread to finish
+    processor_thread.join
+  ensure
+    processor_thread.join if processor_thread
+  end
+
+
+
   def shutdown
     @listening_thread.exit if @listening_thread
     @listening_agents.exit if @listening_agents
+
+    system('pkill -f listen_and_record.py')
 
     agent_manager.stop_agents
 
@@ -89,8 +183,10 @@ class AgentUI
           @redis.publish('weather', { type: :user_input, agent: 'mother', message: 'brush prairie,wa,usa'}.to_json)
         elsif user_input.start_with?('news ')
           @redis.publish('news', { type: :user_input, agent: 'mother', message: user_input.split('news ')[-1] }.to_json)
+        elsif user_input.start_with?('bark ')
+          Thread.new { Bark.call(text: user_input.split('bark ')[-1], voice: 'al_franken') }
         elsif user_input.start_with?('say ')
-          Bark.call(text: user_input.split('say ')[-1], voice: 'al_franken')
+          @redis.publish('aws_polly', { type: :user_input, agent: 'mother', message: user_input.split('say ')[-1] }.to_json)
         elsif user_input == 'pd'
           window_manager.scroll_down(50)
         elsif user_input == 'pu'
@@ -120,7 +216,7 @@ class AgentUI
         end
       end
     end
-end
+  end
 
   def process_event(event)
     return if event == 'exit' # Don't process if 'exit'

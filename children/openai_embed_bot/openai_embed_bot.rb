@@ -2,7 +2,7 @@
 begin
   require_relative 'nanny/lib/nanny'
 
-  LOG_PATH = '/app/logs/open_ai_embedding_agent_'
+  LOG_PATH = '/app/logs/openai_embed_'
 
   class OpenAIEmbedBot < Nanny::NannyBot
 

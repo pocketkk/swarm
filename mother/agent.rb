@@ -49,7 +49,10 @@ class Agent
       ],
       'HostConfig' => {
         'NetworkMode' => 'agent_network',
-        'Binds' => ['/home/pocketkk/ai/agents/swarm/logs:/app/logs']
+        'Binds' => [
+          '/home/pocketkk/ai/agents/swarm/logs:/app/logs',
+          '/home/pocketkk/ai/agents/swarm/audio_in:/app/audio_in'
+        ]
       }
     )
   end

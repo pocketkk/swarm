@@ -1,7 +1,5 @@
-# openai_transcription_bot.rb
+# openai_whisper_bot.rb
 begin
-  require 'faraday'
-  require 'faraday_middleware'
   require_relative 'nanny/lib/nanny'
 
   LOG_PATH = '/app/logs/openai_whisper_bot_'
@@ -25,26 +23,38 @@ begin
     end
 
     def transcribe_audio(file_path)
-      conn = Faraday.new(url: 'https://api.openai.com') do |f|
-        f.request :multipart
-        f.request :url_encoded
-        f.adapter :net_http
+      sleep(5)
+
+      tell_mother("Files in /app/audio_in: #{Dir.entries('/app/audio_in')}")
+      tell_mother("File exists?: #{File.exist?(file_path)}")
+
+      uri = URI('https://api.openai.com/v1/audio/transcriptions')
+      request = Net::HTTP::Post.new(uri)
+      request['Authorization'] = "Bearer #{ENV['OPENAI_API_KEY']}"
+
+      file = File.open(file_path, 'rb')  # Open the file in binary mode
+      form_data = [['file', file], ['model', 'whisper-1']]
+
+      request.set_form form_data, 'multipart/form-data'
+      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+        http.request(request)
       end
+      file.close  # Close the file
+      tell_mother("Full API response: #{response.inspect}")
+      tell_mother("Response body: #{response.body}")
 
-      payload = { file: Faraday::UploadIO.new(file_path, 'audio/mp3'), model: 'whisper-1' }
+      transcription = JSON.parse(response.body)['text']
 
-      response = conn.post do |req|
-        req.url '/v1/audio/transcriptions'
-        req.headers['Authorization'] = "Bearer #{ENV['OPENAI_API_KEY']}"
-        req.headers['Content-Type'] = 'multipart/form-data'
-        req.body = payload
-      end
+      tell_mother("Transcription response: #{response.inspect}")
+      tell_mother("Transcription: #{transcription}")
 
-      JSON.parse(response.body)['text']
+      transcription.gsub('jarvis', '')
+    rescue => e
+      tell_mother("Transcription error: #{e.message}")
     end
 
     def publish_response(response)
-      result = publish(channel: 'events', message: { type: :agent_input, agent: 'openai_transcription_bot', message: response}.to_json)
+      result = publish(channel: 'openai_chat', message: { type: :agent_input, agent: 'openai_whisper_bot', message: response}.to_json)
 
       tell_mother("Published message: #{response}, Publish result: #{result}")
 

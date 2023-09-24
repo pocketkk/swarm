@@ -34,7 +34,7 @@ begin
 
     def publish_response(response)
       result = publish(channel: 'events', message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: response}.to_json)
-      result = publish(channel: 'eleven_labs', message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: response}.to_json)
+      result = publish(channel: 'aws_polly', message: { type: :agent_input, agent: ENV['CHANNEL_NAME'], message: response}.to_json)
       tell_mother("Published message: #{response}, Publish result: #{result}")
 
       response

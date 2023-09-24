@@ -30,8 +30,8 @@ begin
         news = @newsapi.get_top_headlines(sources: 'bbc-news')
       else
         args = event['message'].split(',')
-        query = args.select { |arg| arg.start_with?('q') }.first.split('=')[1]
-        #sources = args.select { |arg| arg.start_with?('s') }.first.split('=')[1].split('|')
+        query = args.select { |arg| arg.start_with?('q') }.first.split('=')[1] rescue nil
+        sources = args.select { |arg| arg.start_with?('s') }.first.split('=')[1].split('|') rescue nil
         from = args.select { |arg| arg.start_with?('f') }.first.split('=')[1] rescue (Time.now - (60*60*24)).strftime('%Y-%m-%d')
         to = args.select { |arg| arg.start_with?('t') }.first.split('=')[1] rescue Time.now.strftime('%Y-%m-%d')
         language = 'en'
